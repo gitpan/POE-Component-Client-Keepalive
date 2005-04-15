@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 05_errors.t,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: 05_errors.t,v 1.2 2004/10/06 02:41:06 rcaputo Exp $
 
 # Test various error messages.
 
@@ -119,15 +119,20 @@ POE::Session->create(
     },
     got_conn => sub {
       my ($kernel, $heap, $response) = @_[KERNEL, HEAP, ARG0];
-      my $conn = $response->{connection};
+
+      # Delete here to avoid an extra copy of the connection.
+      my $conn = delete $response->{connection};
 
       eval {
         $conn->start("moo");
       };
       test_err($@, "Must call start() with an even number of parameters");
 
-      $heap->{cm}->shutdown();
+      # Free the connection.
+      $conn = undef;
+
       TestServer->shutdown();
+      $heap->{cm}->shutdown();
     },
     _child => sub { },
     _stop  => sub { },

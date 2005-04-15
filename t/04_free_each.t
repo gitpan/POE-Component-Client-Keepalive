@@ -1,12 +1,12 @@
 #!/usr/bin/perl
-# $Id: 04_free_each.t,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: 04_free_each.t,v 1.3 2005/04/15 15:49:56 rcaputo Exp $
 
 # Testing the bits that keep track of connections per connection key.
 
 use warnings;
 use strict;
 use lib qw(./mylib ../mylib);
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 sub POE::Kernel::ASSERT_DEFAULT () { 1 }
 
@@ -22,10 +22,11 @@ POE::Session->create(
   inline_states => {
     _start      => \&start,
 
-    got_conn  => \&got_conn,
+    got_conn    => \&got_conn,
     got_error   => \&got_error,
     got_timeout => \&got_timeout,
-    test_alloc_and_free => \&test_alloc_and_free,
+    test_alloc  => \&test_alloc,
+    and_free    => \&and_free,
 
     _child => sub { },
     _stop  => sub { },
@@ -41,66 +42,78 @@ sub start {
   $heap->{cm} = POE::Component::Client::Keepalive->new();
 
   {
-    my $conn = $heap->{cm}->allocate(
+    $heap->{cm}->allocate(
       scheme  => "http",
       addr    => "127.0.0.1",
       port    => PORT,
       event   => "got_conn",
       context => "first",
     );
-
-    ok(!defined($conn), "first connection request is deferred");
   }
 
   {
-    my $conn = $heap->{cm}->allocate(
+    $heap->{cm}->allocate(
       scheme  => "http",
       addr    => "127.0.0.1",
       port    => PORT,
       event   => "got_conn",
       context => "second",
     );
-
-    ok(!defined($conn), "second connection request is deferred");
   }
 }
 
-sub got_conn{
+sub got_conn {
   my ($heap, $stuff) = @_[HEAP, ARG0];
 
   my $conn  = $stuff->{connection};
   my $which = $stuff->{context};
+
   ok(defined($conn), "$which connection created successfully");
+  ok(not (defined ($stuff->{from_cache})), "$which not from cache");
 
   $heap->{conn}{$which} = $conn;
 
   return unless keys(%{$heap->{conn}}) == 2;
 
-  # Free them both at once.
+  # Free all heaped connections.
   delete $heap->{conn};
 
   # Give the server time to accept the connection.
-  $_[KERNEL]->delay(test_alloc_and_free => 1);
+  $_[KERNEL]->delay(test_alloc => 1);
 }
 
 # Allocate and free a third connection.  It's reused from the free
 # pool.
 
-sub test_alloc_and_free {
+sub test_alloc {
   my $heap = $_[HEAP];
 
-  my $new = $heap->{cm}->allocate(
+  $heap->{cm}->allocate(
     scheme  => "http",
     addr    => "127.0.0.1",
     port    => PORT,
-    event   => "got_conn",
+    event   => "and_free",
     context => "third",
   );
+}
 
-  ok(defined($new), "third connection honored from the pool");
+sub and_free {
+	my ($heap, $stuff) = @_[HEAP, ARG0];
 
-  $heap->{cm}->shutdown();
+  my $conn  = delete $stuff->{connection};
+  my $which = $stuff->{context};
+
+  ok(defined($conn), "$which connection created successfully");
+  is(
+		$stuff->{from_cache}, 'immediate',
+		"third connection honored from the pool"
+	);
+
+	# Free the connection first.
+	$conn = undef;
+
   TestServer->shutdown();
+  $heap->{cm}->shutdown();
 }
 
 POE::Kernel->run();

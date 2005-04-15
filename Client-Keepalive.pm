@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: Client-Keepalive.pm,v 1.5 2005/04/15 15:49:56 rcaputo Exp $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.01";
+$VERSION = "0.02";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT);
@@ -107,31 +107,30 @@ sub new {
   POE::Session->create(
     object_states => [
       $self => {
-        _start               => "_cm_initialize",
-        _stop                => "_cm_ignore_this_event",
-        cm_conn_failure      => "_cm_conn_failure",
-        cm_conn_success      => "_cm_conn_success",
-        cm_reclaim_socket    => "_cm_reclaim_socket",
-        cm_relinquish_socket => "_cm_relinquish_socket",
-        cm_request_timeout   => "_cm_request_timeout",
-        cm_set_timeout       => "_cm_set_timeout",
-        cm_shutdown          => "_cm_shutdown",
-        cm_socket_activity   => "_cm_socket_activity",
-        cm_keepalive_timeout => "_cm_keepalive_timeout",
-        cm_wake_up           => "_cm_wake_up",
+        _start               => "_ka_initialize",
+        _stop                => "_ka_ignore_this_event",
+        ka_conn_failure      => "_ka_conn_failure",
+        ka_conn_success      => "_ka_conn_success",
+        ka_reclaim_socket    => "_ka_reclaim_socket",
+        ka_relinquish_socket => "_ka_relinquish_socket",
+        ka_request_timeout   => "_ka_request_timeout",
+        ka_set_timeout       => "_ka_set_timeout",
+        ka_shutdown          => "_ka_shutdown",
+        ka_socket_activity   => "_ka_socket_activity",
+        ka_keepalive_timeout => "_ka_keepalive_timeout",
+        ka_wake_up           => "_ka_wake_up",
       },
     ],
-    args => [ %args ],
   );
 
   return $self;
 }
 
-# Initialize the hidden session behind this component.  Set an alias so
-# the public methods can send it messages easily.
+# Initialize the hidden session behind this component.
+# Set an alias so the public methods can send it messages easily.
 
-sub _cm_initialize {
-  my ($object, $kernel, $heap, %args) = @_[OBJECT, KERNEL, HEAP, ARG0..$#_];
+sub _ka_initialize {
+  my ($object, $kernel) = @_[OBJECT, KERNEL];
   $kernel->alias_set("$object");
 }
 
@@ -142,10 +141,10 @@ sub _cm_initialize {
 # It also happens during free(), to see if there are more sockets to
 # deal with.
 #
-# TODO - Make the _cm_wake_up stuff smart enough not to post duplicate
+# TODO - Make the _ka_wake_up stuff smart enough not to post duplicate
 # messages to the queue.
 
-sub _cm_wake_up {
+sub _ka_wake_up {
   my ($self, $kernel) = @_[OBJECT, KERNEL];
 
   # Scan the list of requests, until we find one that can be met.
@@ -196,6 +195,7 @@ sub _cm_wake_up {
           port       => $request->[RQ_PORT],
           scheme     => $request->[RQ_SCHEME],
           connection => $existing_connection,
+					from_cache => "deferred",
         }
       );
       next;
@@ -218,8 +218,8 @@ sub _cm_wake_up {
     my $wheel = POE::Wheel::SocketFactory->new(
       RemoteAddress => $request->[RQ_ADDRESS],
       RemotePort    => $request->[RQ_PORT],
-      SuccessEvent  => "cm_conn_success",
-      FailureEvent  => "cm_conn_failure",
+      SuccessEvent  => "ka_conn_success",
+      FailureEvent  => "ka_conn_failure",
     );
 
     $self->[SF_WHEELS]{$wheel->ID} = [
@@ -291,10 +291,22 @@ sub allocate {
   my $conn_key = "$scheme:$address:$port";
 
   # If we have a connection pool for the scheme/address/port triple,
-  # then we can maybe return an available connection right away.
+  # then we can maybe post an available connection right away.
 
   my $existing_connection = $self->_check_free_pool($conn_key);
-  return $existing_connection if $existing_connection;
+  if (defined $existing_connection) {
+    $poe_kernel->post ($poe_kernel->get_active_session, $event =>
+			{
+				addr       => $address,
+				context    => $context,
+				port       => $port,
+				scheme     => $scheme,
+				connection => $existing_connection,
+				from_cache => "immediate",
+			}
+		);
+    return;
+  }
 
   # We can't honor the request immediately, so it's put into a queue.
   DEBUG and warn "enqueuing request for $conn_key";
@@ -313,7 +325,7 @@ sub allocate {
     undef,      # RQ_WHEEL_ID
   ];
 
-  $poe_kernel->call("$self", "cm_set_timeout", $request);
+  $poe_kernel->call("$self", "ka_set_timeout", $request);
 
   push @{ $self->[SF_QUEUE] }, $request;
 
@@ -339,23 +351,23 @@ sub allocate {
   # Wake the session up, and return nothing, signifying sound and fury
   # yet to come.
   DEBUG and warn "posting wakeup for $conn_key";
-  $poe_kernel->post("$self", "cm_wake_up");
+  $poe_kernel->post("$self", "ka_wake_up");
   return;
 }
 
 # Set the request's timeout, in the component's context.
 
-sub _cm_set_timeout {
+sub _ka_set_timeout {
   my ($kernel, $request) = @_[KERNEL, ARG0];
   $request->[RQ_TIMER_ID] = $kernel->delay_set(
-    cm_request_timeout => $request->[RQ_TIMEOUT], $request
+    ka_request_timeout => $request->[RQ_TIMEOUT], $request
   );
 }
 
 # The request has timed out.  Mark it as defunct, and respond with an
 # ETIMEDOUT error.
 
-sub _cm_request_timeout {
+sub _ka_request_timeout {
   my ($self, $kernel, $request) = @_[OBJECT, KERNEL, ARG0];
 
   $! = ETIMEDOUT;
@@ -365,7 +377,7 @@ sub _cm_request_timeout {
 
   if (defined $request->[RQ_WHEEL_ID]) {
     @_[ARG0..ARG3] = ("connect", $!+0, "$@", $request->[RQ_WHEEL_ID]);
-    goto &_cm_conn_failure;
+    goto &_ka_conn_failure;
   }
 
   # But what if there is no wheel?
@@ -396,7 +408,7 @@ sub _cm_request_timeout {
 # request.  Remove the SF_USED placeholder record so it won't count
 # anymore.  Send a failure notice to the requester.
 
-sub _cm_conn_failure {
+sub _ka_conn_failure {
   my ($self, $func, $errnum, $errstr, $wheel_id) = @_[OBJECT, ARG0..ARG3];
 
   # Remove the SF_WHEELS record.
@@ -435,7 +447,7 @@ sub _cm_conn_failure {
 # Connection succeeded.  Remove the SF_WHEELS record corresponding to
 # the request.  Flesh out the placeholder SF_USED record so it counts.
 
-sub _cm_conn_success {
+sub _ka_conn_success {
   my ($self, $socket, $wheel_id) = @_[OBJECT, ARG0, ARG3];
 
   # Remove the SF_WHEELS record.
@@ -485,7 +497,7 @@ sub free {
   croak "can't free() unallocated socket" unless defined $used;
 
   # Reclaim the socket.
-  $poe_kernel->call("$self", "cm_reclaim_socket", $used);
+  $poe_kernel->call("$self", "ka_reclaim_socket", $used);
 
   # Avoid returning things by mistake.
   return;
@@ -493,7 +505,7 @@ sub free {
 
 # A sink for deliberately unhandled events.
 
-sub _cm_ignore_this_event {
+sub _ka_ignore_this_event {
   # Do nothing.
 }
 
@@ -517,7 +529,7 @@ sub _check_free_pool {
 
   # _check_free_pool() may be operating in another session, so we call
   # the correct one here.
-  $poe_kernel->call("$self", "cm_relinquish_socket", $next_socket);
+  $poe_kernel->call("$self", "ka_relinquish_socket", $next_socket);
 
   $self->[SF_USED]{$next_socket} = [
     $next_socket,  # USED_SOCKET
@@ -548,8 +560,8 @@ sub _decrement_used_each {
 # Reclaim a socket.  Put it in the free socket pool, and wrap it with
 # select_read() to discard any data and detect when it's closed.
 
-sub _cm_reclaim_socket {
-  my ($self, $kernel, $heap, $used) = @_[OBJECT, KERNEL, HEAP, ARG0];
+sub _ka_reclaim_socket {
+  my ($self, $kernel, $used) = @_[OBJECT, KERNEL, ARG0];
 
   my $socket = $used->[USED_SOCKET];
 
@@ -558,9 +570,9 @@ sub _cm_reclaim_socket {
   $self->_decrement_used_each($request_key);
 
   # Watch the socket, and set a keep-alive timeout.
-  $kernel->select_read($socket, "cm_socket_activity");
+  $kernel->select_read($socket, "ka_socket_activity");
   my $timer_id = $kernel->delay_set(
-    cm_keepalive_timeout => $self->[SF_KEEPALIVE], $socket
+    ka_keepalive_timeout => $self->[SF_KEEPALIVE], $socket
   );
 
   # Record the socket as free to be used.
@@ -570,33 +582,33 @@ sub _cm_reclaim_socket {
     $timer_id,          # SK_TIMER
   ];
 
-  goto &_cm_wake_up;
+  goto &_ka_wake_up;
 }
 
 # Socket timed out.  Discard it.
 
-sub _cm_keepalive_timeout {
+sub _ka_keepalive_timeout {
   my ($self, $socket) = @_[OBJECT, ARG0];
   $self->_remove_socket_from_pool($socket);
 }
 
 # Relinquish a socket.  Stop selecting on it.
 
-sub _cm_relinquish_socket {
+sub _ka_relinquish_socket {
   my ($kernel, $socket) = @_[KERNEL, ARG0];
   $kernel->alarm_remove($_[OBJECT]->[SF_SOCKETS]{$socket}[SK_TIMER]);
   $kernel->select_read($socket, undef);
 }
 
 # Shut down the component.  Release any sockets we're currently
-# holding onto.  Clean up any timers.
+# holding onto.  Clean up any timers.  Remove the alias it's known by.
 
 sub shutdown {
   my $self = shift;
-  $poe_kernel->call("$self", "cm_shutdown");
+  $poe_kernel->call("$self", "ka_shutdown");
 }
 
-sub _cm_shutdown {
+sub _ka_shutdown {
   my ($self, $kernel) = @_[OBJECT, KERNEL];
 
   foreach my $sockets (values %{$self->[SF_POOL]}) {
@@ -605,12 +617,14 @@ sub _cm_shutdown {
       $kernel->select_read($socket, undef);
     }
   }
+
+  $kernel->alias_remove("$self");
 }
 
 # A socket in the free pool has activity.  Read from it and discard
 # the output.  Discard the socket on error or remote closure.
 
-sub _cm_socket_activity {
+sub _ka_socket_activity {
   my ($self, $kernel, $socket) = @_[OBJECT, KERNEL, ARG0];
 
   use bytes;
@@ -660,7 +674,6 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
       got_conn  => \&got_conn,
       got_error => \&handle_error,
       got_input => \&handle_input,
-      use_conn  => \&use_conn,
     }
   );
 
@@ -668,9 +681,9 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
   exit;
 
   sub start {
-    $_[HEAP]->{cm} = POE::Component::Client::Keepalive->new();
+    $_[HEAP]->{ka} = POE::Component::Client::Keepalive->new();
 
-    my $conn = $_[HEAP]->{cm}->allocate(
+    $_[HEAP]->{ka}->allocate(
       scheme  => "http",
       addr    => "127.0.0.1",
       port    => 9999,
@@ -678,12 +691,6 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
       context => "arbitrary data (even a reference) here",
       timeout => 60,
     );
-
-    if (defined $conn) {
-      print "Connection was returned from keep-alive cache.\n";
-      $_[KERNEL]->yield(use_conn => $conn);
-      return;
-    }
 
     print "Connection is in progress.\n";
   }
@@ -695,8 +702,17 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
     my $context = $response->{context};
 
     if (defined $conn) {
-      print "Connection was established asynchronously.\n";
-      $kernel->yield(use_conn => $conn);
+			if ($response->{from_cache}) {
+				print "Connection was established immediately.\n";
+			}
+			else {
+				print "Connection was established asynchronously.\n";
+			}
+
+			$conn->start(
+				InputEvent => "got_input",
+				ErrorEvent => "got_error",
+			);
       return;
     }
 
@@ -704,16 +720,6 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
       "Connection could not be established: ",
       "$response->{function} error $response->{error_num}: ",
       "$response->{error_str}\n"
-    );
-  }
-
-  sub use_conn {
-    my ($heap, $conn) = @_[HEAP, ARG0];
-
-    $heap->{connection} = $conn;
-    $conn->start(
-      InputEvent => "got_input",
-      ErrorEvent => "got_error",
     );
   }
 
@@ -725,7 +731,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
   sub handle_error {
     my $heap = $_[HEAP];
     delete $heap->{connection};
-    $heap->{cm}->shutdown();
+    $heap->{ka}->shutdown();
   }
 
 =head1 DESCRIPTION
@@ -773,17 +779,18 @@ component holds a request before generating an error.
 
 =item allocate
 
-Allocate a new connection.  Allocate() will return a connection
-immediately if the keep-alive pool contains one matching the given
-scheme, address, and port.  Otherwise allocate() will return undef and
-begin establishing a connection asynchronously.  A message will be
-posted back to the requesting session when the connection status is
-finally known.
+Allocate a new connection.  Allocate() will return immediately.  The
+allocated connection, however, will be posted back to the requesting
+session.  This happens even if the connection was found in the
+component's keep-alive cache.
 
 Allocate() requires five parameters and has an optional sixth.
 
 Specify the scheme that will be used to communicate on the connection
-(typically http or https).  The scheme is required.
+(typically http or https).  The scheme is required, but you're free to
+make something up here.  It's used internally to differentiate
+different types of socket (e.g., ssl vs. cleartext) on the same
+address and port.
 
   scheme  => $connection_scheme,
 
@@ -794,13 +801,12 @@ and port must be numeric.  Both the address and port are required.
   port    => $remote_port,
 
 Specify an name of the event to post when an asynchronous response is
-ready.  The response event is required, but it won't be used if
-allocate() can return a connection right away.
+ready.  This is of course required.
 
   event   => $return_event,
 
 Set the connection timeout, in seconds.  The connection manager will
-return an error (ETIMEDOUT) if it can't establish a connection within
+post back an error message if it can't establish a connection within
 the requested time.  This parameter is optional.  It will default to
 the master timeout provided to the connection manager's constructor.
 
@@ -815,7 +821,7 @@ extremely handy, but it's optional.
 
 In summary:
 
-  my $connection = $mgr->allocate(
+  $mgr->allocate(
     scheme   => "http",
     address  => "127.0.0.1",
     port     => 80,
@@ -843,6 +849,18 @@ One field returns the connection object if the connection was
 successful, or undef if there was a failure:
 
   $response{connection} = $new_socket_handle;
+
+On success, another field tells you whether the connection contains
+all new materials.  That is, whether the connection has been recycled
+from the component's cache or created anew.
+
+  $response{from_cache} = $status;
+
+The from_cache status may be "immediate" if the connection was
+immediately available from the cache.  It will be "deferred" if the
+connection was reused, but another user had to release it first.
+Finally, from_cache will be false if the connection had to be created
+to satisfy allocate().
 
 Three other fields return error information if the connection failed.
 They are not present if the connection was successful.
@@ -885,7 +903,9 @@ L<POE::Component::Connection::Keepalive>
 
 =head1 BUGS
 
-None known.
+http://rt.cpan.org/NoAuth/Bugs.html?Dist=POE-Component-Client-Keepalive
+tracks the known issues with this component.  You can add to them by
+sending mail to bug-poe-component-client-keepalive@rt.cpan.org.
 
 =head1 LICENSE
 

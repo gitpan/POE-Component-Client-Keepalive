@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 07_keep_alive.t,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: 07_keep_alive.t,v 1.3 2005/04/15 15:49:56 rcaputo Exp $
 
 # Test keepalive.  Allocates a connection, frees it, waits for the
 # keep-alive timeout, allocates an identical connection.  The second
@@ -41,7 +41,7 @@ sub start {
     keep_alive => 1,
   );
 
-  my $conn = $heap->{cm}->allocate(
+  $heap->{cm}->allocate(
     scheme  => "http",
     addr    => "127.0.0.1",
     port    => PORT,
@@ -49,13 +49,13 @@ sub start {
     context => "first",
   );
 
-  ok(!defined($conn), "first connection request deferred");
 }
 
 sub got_first_conn {
   my ($kernel, $heap, $stuff) = @_[KERNEL, HEAP, ARG0];
 
   my $conn = $stuff->{connection};
+  ok(!defined($stuff->{from_cache}), "first connection request deferred");
   ok(defined($conn), "first request honored asynchronously");
 
   $kernel->delay(kept_alive => 2);
@@ -68,7 +68,7 @@ sub keepalive_over {
   # connection won't be reused because it should have been reaped by
   # the keep-alive timer.
 
-  my $second = $heap->{cm}->allocate(
+  $heap->{cm}->allocate(
     scheme  => "http",
     addr    => "127.0.0.1",
     port    => PORT,
@@ -76,17 +76,13 @@ sub keepalive_over {
     context => "second",
   );
 
-  ok(!defined($second), "second connection request deferred");
-
-  my $third = $heap->{cm}->allocate(
+  $heap->{cm}->allocate(
     scheme  => "http",
     addr    => "127.0.0.1",
     port    => PORT,
     event   => "got_conn",
     context => "third",
   );
-
-  ok(!defined($third), "third connection request deferred");
 }
 
 sub got_conn {
@@ -95,6 +91,7 @@ sub got_conn {
   my $conn  = $stuff->{connection};
   my $which = $stuff->{context};
   ok(defined($conn), "$which request honored asynchronously");
+  ok(!defined ($stuff->{from_cache}), "$which uses a new connection");
 
   if (++$heap->{others} == 2) {
     $kernel->delay(second_kept_alive => 2);
@@ -102,8 +99,8 @@ sub got_conn {
 }
 
 sub second_kept_alive {
-  $_[HEAP]->{cm}->shutdown();
   TestServer->shutdown();
+  $_[HEAP]->{cm}->shutdown();
 }
 
 POE::Kernel->run();

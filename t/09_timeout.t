@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 09_timeout.t,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: 09_timeout.t,v 1.2 2005/04/15 15:49:56 rcaputo Exp $
 
 # Test request timeouts.  Set the timeout ridiculously small, so
 # timeouts happen immediately.  Request a connection, and watch it
@@ -40,15 +40,13 @@ sub start {
   );
 
   {
-    my $conn = $heap->{cm}->allocate(
+    $heap->{cm}->allocate(
       scheme  => "http",
       addr    => "127.0.0.1",
       port    => PORT,
       event   => "got_conn",
       context => "first",
     );
-
-    ok(!defined($conn), "first connection request deferred");
   }
 
   # TODO - The 0.01 second timeout assumes it will give the component
@@ -56,7 +54,7 @@ sub start {
   # This is a bold assumption, and it may lead to false failures.
 
   {
-    my $conn = $heap->{cm}->allocate(
+    $heap->{cm}->allocate(
       scheme  => "http",
       addr    => "google.com",
       port    => 80,
@@ -64,8 +62,6 @@ sub start {
       context => "second",
       timeout => 0.01,
     );
-
-    ok(!defined($conn), "second connection request deferred");
   }
 }
 
@@ -74,6 +70,7 @@ sub got_conn {
 
   my $conn  = $stuff->{connection};
   my $which = $stuff->{context};
+  ok(!defined($stuff->{from_cache}), "$which didn't come from cache");
   ok(!defined($conn), "$which connection failed");
   ok(
     $stuff->{error_num} == Errno::ETIMEDOUT,
