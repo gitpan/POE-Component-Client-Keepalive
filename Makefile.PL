@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL,v 1.3 2004/10/06 01:47:03 rcaputo Exp $
+# $Id: Makefile.PL 26 2005-06-21 15:14:28Z rcaputo $
 
 use ExtUtils::MakeMaker;
 
@@ -16,13 +16,16 @@ WriteMakefile(
     'Conn-Keepalive.pm'   => '$(INST_LIBDIR)/../Connection/Keepalive.pm',
   },
   PREREQ_PM    => {
-    'POE' => 0.29,
+    'POE'                         => 0.31,
+    'POE::Component::Client::DNS' => 0.98,
+    'POE::Component::SSLify'      => 0.04,
   },
   dist         => {
     COMPRESS   => 'gzip -9f',
     SUFFIX     => 'gz',
     PREOP      => (
-      'cvs-log.perl | tee ./$(DISTNAME)-$(VERSION)/CHANGES > ./CHANGES'
+      'svn-log.perl --repo https://thirdlobe.com/svn/poco-client-keepalive |' .
+      'tee ./$(DISTNAME)-$(VERSION)/CHANGES > ./CHANGES'
     ),
   },
 );

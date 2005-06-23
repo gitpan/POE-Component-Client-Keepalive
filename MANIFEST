@@ -1,9 +1,8 @@
-# $Id: MANIFEST,v 1.3 2004/10/03 16:58:01 rcaputo Exp $
+# $Id: MANIFEST 26 2005-06-21 15:14:28Z rcaputo $
 CHANGES
 Client-Keepalive.pm
 Conn-Keepalive.pm
 MANIFEST
-META.yml                                 Module meta-data (added by MakeMaker)
 Makefile.PL
 README
 mylib/TestServer.pm
@@ -17,3 +16,6 @@ t/06_activity.t
 t/07_keep_alive.t
 t/08_quick_reuse.t
 t/09_timeout.t
+t/10_resolver.t
+t/11_dead_socket.t
+META.yml                                 Module meta-data (added by MakeMaker)

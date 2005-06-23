@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 02_socket_queue.t,v 1.3 2005/04/15 15:49:56 rcaputo Exp $
+# $Id: 02_socket_queue.t 13 2005-04-15 15:49:56Z rcaputo $
 
 # Test connection queuing.  Set the max active connection to be really
 # small (one in all), and then try to allocate two connections.  The

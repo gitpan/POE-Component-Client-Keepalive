@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 05_errors.t,v 1.2 2004/10/06 02:41:06 rcaputo Exp $
+# $Id: 05_errors.t 17 2005-05-06 15:58:31Z martijn $
 
 # Test various error messages.
 
@@ -51,7 +51,7 @@ test_err($@, "allocate() needs an 'addr'");
 eval {
   $cm->allocate(
     scheme => "http",
-    addr   => "127.0.0.1",
+    addr   => "localhost",
   );
 };
 test_err($@, "allocate() needs a 'port'");
@@ -59,7 +59,7 @@ test_err($@, "allocate() needs a 'port'");
 eval {
   $cm->allocate(
     scheme => "http",
-    addr   => "127.0.0.1",
+    addr   => "localhost",
     port   => 80,
   );
 };
@@ -68,7 +68,7 @@ test_err($@, "allocate() needs an 'event'");
 eval {
   $cm->allocate(
     scheme => "http",
-    addr   => "127.0.0.1",
+    addr   => "localhost",
     port   => 80,
     event  => "narf",
   );
@@ -78,7 +78,7 @@ test_err($@, "allocate() needs a 'context'");
 eval {
   $cm->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => 80,
     event   => "narf",
     context => "moo",
@@ -111,7 +111,7 @@ POE::Session->create(
       $heap->{cm} = POE::Component::Client::Keepalive->new();
       $heap->{cm}->allocate(
         scheme  => "http",
-        addr    => "127.0.0.1",
+        addr    => "localhost",
         port    => PORT,
         event   => "got_conn",
         context => "first",

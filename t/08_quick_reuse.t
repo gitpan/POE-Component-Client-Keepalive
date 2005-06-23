@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 08_quick_reuse.t,v 1.3 2005/04/15 15:49:56 rcaputo Exp $
+# $Id: 08_quick_reuse.t 17 2005-05-06 15:58:31Z martijn $
 
 # Test rapid connection reuse.  Sets the maximum overall connections
 # to a low number.  Allocate up to the maximum.  Reuse one of the
@@ -48,7 +48,7 @@ sub start {
   {
     $heap->{cm}->allocate(
       scheme  => "http",
-      addr    => "127.0.0.1",
+      addr    => "localhost",
       port    => PORT,
       event   => "got_conn",
       context => "first",
@@ -58,7 +58,7 @@ sub start {
   {
     $heap->{cm}->allocate(
       scheme  => "http",
-      addr    => "127.0.0.1",
+      addr    => "localhost",
       port    => PORT,
       event   => "got_conn",
       context => "second",
@@ -82,7 +82,7 @@ sub got_conn {
 
   $heap->{cm}->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => PORT,
     event   => "got_another_conn",
     context => "third",
@@ -91,7 +91,7 @@ sub got_conn {
 
   $heap->{cm}->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => ANOTHER_PORT,
     event   => "got_another_conn",
     context => "fourth",

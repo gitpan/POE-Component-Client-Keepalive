@@ -1,4 +1,4 @@
-# $Id: TestServer.pm,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: TestServer.pm 23 2005-05-06 16:00:02Z martijn $
 
 package TestServer;
 
@@ -43,7 +43,7 @@ sub discard_client_input {
 
 sub send_something {
   foreach my $client (keys %clients) {
-    $poe_kernel->post($client, "send_something");
+    $poe_kernel->call($client, "send_something");
   }
 }
 
@@ -54,6 +54,12 @@ sub internal_send_something {
 sub shutdown {
   foreach my $session (values(%servers), keys(%clients)) {
     $poe_kernel->post($session => "shutdown");
+  }
+}
+
+sub shutdown_clients {
+  foreach my $session (keys(%clients)) {
+    $poe_kernel->call($session => "shutdown");
   }
 }
 

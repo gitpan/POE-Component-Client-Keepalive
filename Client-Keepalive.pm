@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm,v 1.5 2005/04/15 15:49:56 rcaputo Exp $
+# $Id: Client-Keepalive.pm 29 2005-06-23 01:04:12Z rcaputo $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.02";
+$VERSION = "0.03";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT);
@@ -14,6 +14,8 @@ use Errno qw(ETIMEDOUT);
 use POE;
 use POE::Wheel::SocketFactory;
 use POE::Component::Connection::Keepalive;
+use POE::Component::Client::DNS;
+use POE::Component::SSLify qw( Client_SSLify);
 
 use constant DEBUG => 0;
 
@@ -21,18 +23,19 @@ use constant DEBUG => 0;
 # them arrays.  These constants define offsets into those arrays, and
 # the comments document them.
 
-                            # @$self = (
-sub SF_POOL      () { 0 }   #   \%socket_pool,
-sub SF_QUEUE     () { 1 }   #   \@request_queue,
-sub SF_USED      () { 2 }   #   \%sockets_in_use,
-sub SF_WHEELS    () { 3 }   #   \%wheels_by_id,
-sub SF_USED_EACH () { 4 }   #   \%count_by_triple,
-sub SF_MAX_OPEN  () { 5 }   #   $max_open_count,
-sub SF_MAX_HOST  () { 6 }   #   $max_per_host,
-sub SF_SOCKETS   () { 7 }   #   \%socket_xref,
-sub SF_KEEPALIVE () { 8 }   #   $keep_alive_secs,
-sub SF_TIMEOUT   () { 9 }   #   $default_request_timeout,
-                            # );
+                             # @$self = (
+sub SF_POOL      () {  0 }   #   \%socket_pool,
+sub SF_QUEUE     () {  1 }   #   \@request_queue,
+sub SF_USED      () {  2 }   #   \%sockets_in_use,
+sub SF_WHEELS    () {  3 }   #   \%wheels_by_id,
+sub SF_USED_EACH () {  4 }   #   \%count_by_triple,
+sub SF_MAX_OPEN  () {  5 }   #   $max_open_count,
+sub SF_MAX_HOST  () {  6 }   #   $max_per_host,
+sub SF_SOCKETS   () {  7 }   #   \%socket_xref,
+sub SF_KEEPALIVE () {  8 }   #   $keep_alive_secs,
+sub SF_TIMEOUT   () {  9 }   #   $default_request_timeout,
+sub SF_RESOLVER  () { 10 }   #
+                             # );
 
                             # $socket_xref{$socket} = [
 sub SK_KEY       () { 0 }   #   $conn_key,
@@ -65,13 +68,14 @@ sub RQ_SESSION  () {  0 }   #   $request_session,
 sub RQ_EVENT    () {  1 }   #   $request_event,
 sub RQ_SCHEME   () {  2 }   #   $request_scheme,
 sub RQ_ADDRESS  () {  3 }   #   $request_address,
-sub RQ_PORT     () {  4 }   #   $request_port,
-sub RQ_CONN_KEY () {  5 }   #   $request_connection_key,
-sub RQ_CONTEXT  () {  6 }   #   $request_context,
-sub RQ_TIMEOUT  () {  7 }   #   $request_timeout,
-sub RQ_START    () {  8 }   #   $request_start_time,
-sub RQ_TIMER_ID () {  9 }   #   $request_timer_id,
-sub RQ_WHEEL_ID () { 10 }   #   $request_wheel_id,
+sub RQ_IP       () {  4 }   #   $request_ip,
+sub RQ_PORT     () {  5 }   #   $request_port,
+sub RQ_CONN_KEY () {  6 }   #   $request_connection_key,
+sub RQ_CONTEXT  () {  7 }   #   $request_context,
+sub RQ_TIMEOUT  () {  8 }   #   $request_timeout,
+sub RQ_START    () {  9 }   #   $request_start_time,
+sub RQ_TIMER_ID () { 10 }   #   $request_timer_id,
+sub RQ_WHEEL_ID () { 11 }   #   $request_wheel_id,
                             # ];
 
 # Create a connection manager.
@@ -85,6 +89,7 @@ sub new {
   my $max_open     = delete($args{max_open})     || 128;
   my $keep_alive   = delete($args{keep_alive})   || 15;
   my $timeout      = delete($args{timeout})      || 120;
+  my $resolver     = delete($args{resolver});
 
   my @unknown = sort keys %args;
   if (@unknown) {
@@ -102,7 +107,15 @@ sub new {
     { },                # SF_SOCKETS
     $keep_alive,        # SF_KEEPALIVE
     $timeout,           # SF_TIMEOUT
+    undef,              # SF_RESOLVER
   ], $class;
+
+  unless (defined $resolver) {
+    $resolver = POE::Component::Client::DNS->spawn (
+      Alias => "$self\_resolver",
+    );
+  }
+  $self->[SF_RESOLVER] = $resolver;
 
   POE::Session->create(
     object_states => [
@@ -119,6 +132,9 @@ sub new {
         ka_socket_activity   => "_ka_socket_activity",
         ka_keepalive_timeout => "_ka_keepalive_timeout",
         ka_wake_up           => "_ka_wake_up",
+  ka_resolve_request   => "_ka_resolve_request",
+  ka_add_to_queue       => "_ka_add_to_queue",
+  ka_dns_response       => "_ka_dns_response",
       },
     ],
   );
@@ -133,6 +149,7 @@ sub _ka_initialize {
   my ($object, $kernel) = @_[OBJECT, KERNEL];
   $kernel->alias_set("$object");
 }
+
 
 # Request to wake up.  This should only happen during the edge
 # condition where the component's request queue goes from empty to
@@ -195,7 +212,7 @@ sub _ka_wake_up {
           port       => $request->[RQ_PORT],
           scheme     => $request->[RQ_SCHEME],
           connection => $existing_connection,
-					from_cache => "deferred",
+          from_cache => "deferred",
         }
       );
       next;
@@ -215,8 +232,10 @@ sub _ka_wake_up {
     # Start the request.  Create a wheel to begin the connection.
     # Move the wheel and its request into SF_WHEELS.
     DEBUG and warn "creating wheel for $req_key";
+
+    my $addr = ($request->[RQ_IP] or $request->[RQ_ADDRESS]);
     my $wheel = POE::Wheel::SocketFactory->new(
-      RemoteAddress => $request->[RQ_ADDRESS],
+      RemoteAddress => $addr,
       RemotePort    => $request->[RQ_PORT],
       SuccessEvent  => "ka_conn_success",
       FailureEvent  => "ka_conn_failure",
@@ -296,15 +315,15 @@ sub allocate {
   my $existing_connection = $self->_check_free_pool($conn_key);
   if (defined $existing_connection) {
     $poe_kernel->post ($poe_kernel->get_active_session, $event =>
-			{
-				addr       => $address,
-				context    => $context,
-				port       => $port,
-				scheme     => $scheme,
-				connection => $existing_connection,
-				from_cache => "immediate",
-			}
-		);
+      {
+        addr       => $address,
+        context    => $context,
+        port       => $port,
+        scheme     => $scheme,
+        connection => $existing_connection,
+        from_cache => "immediate",
+      }
+    );
     return;
   }
 
@@ -316,6 +335,7 @@ sub allocate {
     $event,     # RQ_EVENT
     $scheme,    # RQ_SCHEME
     $address,   # RQ_ADDRESS
+    undef,  # RQ_IP
     $port,      # RQ_PORT
     $conn_key,  # RQ_CONN_KEY
     $context,   # RQ_CONTEXT
@@ -326,32 +346,8 @@ sub allocate {
   ];
 
   $poe_kernel->call("$self", "ka_set_timeout", $request);
+  $poe_kernel->post("$self", ka_resolve_request => $request);
 
-  push @{ $self->[SF_QUEUE] }, $request;
-
-  # If the queue has more than one request in it, then it already has
-  # a wakeup event pending.  We don't need to send another one.
-
-  return if @{$self->[SF_QUEUE]} > 1;
-
-  # If the component's allocated socket count is maxed out, then it
-  # will check the queue when an existing socket is released.  We
-  # don't need to wake it up here.
-
-  return if keys(%{$self->[SF_USED]}) >= $self->[SF_MAX_OPEN];
-
-  # Likewise, we shouldn't awaken the session if there are no
-  # available slots for the given scheme/address/port triple.  "|| 0"
-  # to avoid an undef error.
-
-  return if (
-    ($self->[SF_USED_EACH]{$conn_key} || 0) >= $self->[SF_MAX_HOST]
-  );
-
-  # Wake the session up, and return nothing, signifying sound and fury
-  # yet to come.
-  DEBUG and warn "posting wakeup for $conn_key";
-  $poe_kernel->post("$self", "ka_wake_up");
   return;
 }
 
@@ -370,6 +366,9 @@ sub _ka_set_timeout {
 sub _ka_request_timeout {
   my ($self, $kernel, $request) = @_[OBJECT, KERNEL, ARG0];
 
+  DEBUG and
+    warn "CON: request from session", $request->[RQ_SESSION]->ID,
+   " for address ", $request->[RQ_ADDRESS], " timed out";
   $! = ETIMEDOUT;
 
   # The easiest way to do this?  Simulate an error from the wheel
@@ -385,16 +384,7 @@ sub _ka_request_timeout {
   $kernel->post(
     $request->[RQ_SESSION],
     $request->[RQ_EVENT],
-    {
-      addr       => $request->[RQ_ADDRESS],
-      context    => $request->[RQ_CONTEXT],
-      port       => $request->[RQ_PORT],
-      scheme     => $request->[RQ_SCHEME],
-      connection => undef,
-      function   => "connect",
-      error_num  => $! + 0,
-      error_str  => "$!",
-    }
+    _error_response ($request, "connect", $! + 0, "$!"),
   );
 
   # And mark the request as dead.
@@ -411,6 +401,7 @@ sub _ka_request_timeout {
 sub _ka_conn_failure {
   my ($self, $func, $errnum, $errstr, $wheel_id) = @_[OBJECT, ARG0..ARG3];
 
+  DEBUG and warn "CON: sending $errstr for function $func";
   # Remove the SF_WHEELS record.
   my $wheel_rec = delete $self->[SF_WHEELS]{$wheel_id};
   my $request   = $wheel_rec->[WHEEL_REQUEST];
@@ -431,16 +422,7 @@ sub _ka_conn_failure {
   $_[KERNEL]->post(
     $request->[RQ_SESSION],
     $request->[RQ_EVENT],
-    {
-      address    => $request->[RQ_ADDRESS],
-      context    => $request->[RQ_CONTEXT],
-      port       => $request->[RQ_PORT],
-      scheme     => $request->[RQ_SCHEME],
-      connection => undef,
-      function   => $func,
-      error_num  => $errnum,
-      error_str  => $errstr,
-    }
+    _error_response ($request, $func, $errnum, $errstr),
   );
 }
 
@@ -457,6 +439,10 @@ sub _ka_conn_success {
   # Remove the SF_USED placeholder, add in the socket, and store it
   # properly.
   my $used = delete $self->[SF_USED]{$wheel_id};
+
+  if ($request->[RQ_SCHEME] eq 'https') {
+    $socket = Client_SSLify ($socket);
+  }
 
   $used->[USED_SOCKET] = $socket;
 
@@ -490,6 +476,8 @@ sub _ka_conn_success {
 
 sub free {
   my ($self, $socket) = @_;
+
+  DEBUG and warn "freeing socket";
 
   # Remove the accompanying SF_USED record.
   croak "can't free() undefined socket" unless defined $socket;
@@ -569,18 +557,43 @@ sub _ka_reclaim_socket {
   my $request_key = $used->[USED_KEY];
   $self->_decrement_used_each($request_key);
 
-  # Watch the socket, and set a keep-alive timeout.
-  $kernel->select_read($socket, "ka_socket_activity");
-  my $timer_id = $kernel->delay_set(
-    ka_keepalive_timeout => $self->[SF_KEEPALIVE], $socket
-  );
 
-  # Record the socket as free to be used.
-  $self->[SF_POOL]{$request_key}{$socket} = $socket;
-  $self->[SF_SOCKETS]{$socket} = [
-    $request_key,       # SK_KEY
-    $timer_id,          # SK_TIMER
-  ];
+  # only try to reuse it if it still works
+  my ($nfound, $status);
+  {
+    DEBUG and warn "checking if socket still works";
+    my $rin = '';
+    vec($rin, fileno ($socket), 1) = 1;
+    my ($rout, $eout);
+    $nfound = select ($rout=$rin, undef, $eout=$rin, 0);
+    DEBUG and warn "select results: $nfound";
+
+    if ($nfound) {
+      use bytes;
+      DEBUG and warn "uh oh, socket activity";
+      $status = sysread($socket, my $buf = "", 65536);
+      if (DEBUG and defined $status) {
+  warn "read $status bytes. 0 means EOF";
+      }
+    }
+  }
+
+  if (!$nfound or $status != 0) {
+    DEBUG and warn "reclaiming socket";
+
+    # Watch the socket, and set a keep-alive timeout.
+    $kernel->select_read($socket, "ka_socket_activity");
+    my $timer_id = $kernel->delay_set(
+      ka_keepalive_timeout => $self->[SF_KEEPALIVE], $socket
+    );
+
+    # Record the socket as free to be used.
+    $self->[SF_POOL]{$request_key}{$socket} = $socket;
+    $self->[SF_SOCKETS]{$socket} = [
+      $request_key,       # SK_KEY
+      $timer_id,          # SK_TIMER
+    ];
+  }
 
   goto &_ka_wake_up;
 }
@@ -618,7 +631,11 @@ sub _ka_shutdown {
     }
   }
 
+  delete $self->[SF_RESOLVER];
+  delete $_[HEAP]->{resolve};
   $kernel->alias_remove("$self");
+
+  return;
 }
 
 # A socket in the free pool has activity.  Read from it and discard
@@ -627,10 +644,130 @@ sub _ka_shutdown {
 sub _ka_socket_activity {
   my ($self, $kernel, $socket) = @_[OBJECT, KERNEL, ARG0];
 
+  if (DEBUG) {
+    my $socket_rec = $self->[SF_SOCKETS]{$socket};
+    my $key = $socket_rec->[SK_KEY];
+    warn "CON: Got activity on socket for $key";
+  }
+
   use bytes;
   return if sysread($socket, my $buf = "", 65536);
 
+  DEBUG and warn "CON: socket got EOF or an error. removing it from the pool";
   $self->_remove_socket_from_pool($socket);
+}
+
+sub _ka_resolve_request {
+  my ($self, $kernel, $heap, $request) = @_[OBJECT, KERNEL, HEAP, ARG0];
+
+  my $host = $request->[RQ_ADDRESS];
+  if ($host !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+
+    if (exists $heap->{resolve}->{$host}) {
+      DEBUG and warn "DNS: $host is piggybacking on a pending lookup.\n";
+      push @{$heap->{resolve}->{$host}}, $request;
+    } else {
+      DEBUG and warn "DNS: $host is being looked up in the background.\n";
+      $heap->{resolve}->{$host} = [ $request ];
+
+      my $response = $self->[SF_RESOLVER]->resolve(
+    event => 'ka_dns_response',
+    host => $host,
+    context => 1,
+  );
+  
+      if ($response) {
+  $kernel->yield (ka_dns_response => $response);
+      }
+    }
+  } else {
+    DEBUG and warn "DNS: $host may block while it's looked up.\n";
+    $kernel->yield(ka_add_to_queue => $request);
+  }
+}
+
+sub _ka_dns_response {
+  my ($kernel, $heap, $response) = @_[KERNEL, HEAP, ARG0];
+  my $request_address = $response->{'host'};
+  my $response_object = $response->{'response'};
+  my $response_error  = $response->{'error'};
+
+  my $requests = delete $heap->{resolve}->{$request_address};
+
+  DEBUG and warn "DNS: request address = $request_address";
+
+  # No requests are on record for this lookup.
+  die "!!!: Unexpectedly undefined requests" unless defined $requests;
+
+  # No response.
+  unless (defined $response_object) {
+    foreach my $request (@$requests) {
+      $kernel->alarm_remove ($request->[RQ_TIMER_ID]);
+      $kernel->post ($request->[RQ_SESSION], $request->[RQ_EVENT] =>
+    _error_response ($request, "resolve", undef, $response_error),
+  );
+    }
+    return;
+  }
+
+  # A response!
+  foreach my $answer ($response_object->answer()) {
+    # don't need this because we ask for only A answers anyway
+    #next unless $answer->type eq "A";
+
+    DEBUG and
+      warn "DNS: $request_address resolves to ", $answer->rdatastr;
+
+    foreach my $request (@$requests) {
+      $request->[RQ_IP] = $answer->rdatastr;
+      $kernel->yield(ka_add_to_queue => $request);
+    }
+
+    # Return after the first good answer.
+    return;
+  }
+
+  # Didn't return here.  No address record for the host?
+  foreach my $request (@$requests) {
+    DEBUG and warn "DNS: $request_address does not resolve";
+    $kernel->alarm_remove ($request->[RQ_TIMER_ID]);
+    $kernel->post ($request->[RQ_SESSION], $request->[RQ_EVENT],
+  _error_response ($request, "resolve", undef, "Host has no address."),
+      );
+  }
+}
+
+
+sub _ka_add_to_queue {
+  my ($self, $kernel, $request) = @_[OBJECT, KERNEL, ARG0];
+
+  push @{ $self->[SF_QUEUE] }, $request;
+
+  # If the queue has more than one request in it, then it already has
+  # a wakeup event pending.  We don't need to send another one.
+
+  return if @{$self->[SF_QUEUE]} > 1;
+
+  # If the component's allocated socket count is maxed out, then it
+  # will check the queue when an existing socket is released.  We
+  # don't need to wake it up here.
+
+  return if keys(%{$self->[SF_USED]}) >= $self->[SF_MAX_OPEN];
+
+  # Likewise, we shouldn't awaken the session if there are no
+  # available slots for the given scheme/address/port triple.  "|| 0"
+  # to avoid an undef error.
+
+  my $conn_key = $request->[RQ_CONN_KEY];
+  return if (
+    ($self->[SF_USED_EACH]{$conn_key} || 0) >= $self->[SF_MAX_HOST]
+  );
+
+  # Wake the session up, and return nothing, signifying sound and fury
+  # yet to come.
+  DEBUG and warn "posting wakeup for $conn_key";
+  $poe_kernel->post("$self", "ka_wake_up");
+  return;
 }
 
 # Remove a socket from the free pool, by the socket handle itself.
@@ -642,6 +779,7 @@ sub _remove_socket_from_pool {
   my $key = $socket_rec->[SK_KEY];
 
   # Get the blessed version.
+  DEBUG and warn "removing socket for $key";
   $socket = delete $self->[SF_POOL]{$key}{$socket};
 
   unless (keys %{$self->[SF_POOL]{$key}}) {
@@ -650,6 +788,24 @@ sub _remove_socket_from_pool {
 
   $poe_kernel->alarm_remove($socket_rec->[SK_TIMER]);
   $poe_kernel->select_read($socket, undef);
+}
+
+sub _error_response {
+  my ($request, $func, $num, $string) = @_;
+
+  return
+    {
+      addr       => $request->[RQ_ADDRESS],
+      context    => $request->[RQ_CONTEXT],
+      port       => $request->[RQ_PORT],
+      scheme     => $request->[RQ_SCHEME],
+      connection => undef,
+      function   => $func,
+      error_num  => $num,
+      error_str  => $string,
+    }
+  ;
+
 }
 
 1;
@@ -702,17 +858,17 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
     my $context = $response->{context};
 
     if (defined $conn) {
-			if ($response->{from_cache}) {
-				print "Connection was established immediately.\n";
-			}
-			else {
-				print "Connection was established asynchronously.\n";
-			}
+      if ($response->{from_cache}) {
+        print "Connection was established immediately.\n";
+      }
+      else {
+        print "Connection was established asynchronously.\n";
+      }
 
-			$conn->start(
-				InputEvent => "got_input",
-				ErrorEvent => "got_error",
-			);
+      $conn->start(
+        InputEvent => "got_input",
+        ErrorEvent => "got_error",
+      );
       return;
     }
 

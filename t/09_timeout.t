@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 09_timeout.t,v 1.2 2005/04/15 15:49:56 rcaputo Exp $
+# $Id: 09_timeout.t 13 2005-04-15 15:49:56Z rcaputo $
 
 # Test request timeouts.  Set the timeout ridiculously small, so
 # timeouts happen immediately.  Request a connection, and watch it

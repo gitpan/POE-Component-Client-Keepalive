@@ -1,11 +1,106 @@
 =========================
+2005-06-23 01:11:36 v0_03
+=========================
+
+  2005-06-23 01:04:12 (r29) by rcaputo; Client-Keepalive.pm M
+
+    Oops! Something wasn't indented properly! Gasp! 
+
+  2005-06-22 14:40:07 (r28) by rcaputo; Client-Keepalive.pm M
+
+    Bump up the version to 0.03 for release. Also destroy tabs in the
+    file. 
+
+  2005-06-21 17:36:19 (r27) by rcaputo; Conn-Keepalive.pm M
+
+    Fix $VERSION to work with Subversion. 
+
+  2005-06-21 15:14:28 (r26) by rcaputo; MANIFEST M; Makefile.PL M
+
+    Remove META.yml from MANIFEST. It appears to be auto-generated into
+    the distribution at "make dist" time. Replace cvs-log.perl with
+    svn-log.perl in Makefile.PL since we're in Subversion now. 
+
+  2005-05-06 16:18:30 (r25) by rcaputo; Makefile.PL M
+
+    Depend on POE 0.31, and add POE::Component::SSLify as a dependency. 
+
+  2005-05-06 16:00:19 (r24) by martijn
+  t/11_dead_socket.t M; Client-Keepalive.pm M
+
+    r5553@fangorn: martijn | 2005-05-06 17:59:52 +0200 Fix for the
+    connection being closed on the server side, but not waiting for the
+    EOF on the client side if the connection is closed before the
+    Connection object is released. We don't reuse the socket in that case
+    anymore. Now to try to find a way to do the same if the connection
+    closing happens after the Connection object goes away. In this case,
+    the socket may have already been reused, so the new client still gets
+    an EOF 'error' as the first event, and nothing else. 
+
+  2005-05-06 16:00:02 (r23) by martijn
+  mylib/TestServer.pm M; t/11_dead_socket.t M
+
+    r5552@fangorn: martijn | 2005-05-06 17:58:48 +0200 fix test and
+    TestServer 
+
+  2005-05-06 15:59:44 (r22) by martijn
+  mylib/TestServer.pm M; MANIFEST M; t/11_dead_socket.t A
+
+    r5551@fangorn: martijn | 2005-05-06 17:14:53 +0200 Add tests for bug
+    where we throw away the connection right before we get EOF, and it
+    gets reused and the new connection gets an EOF error event
+    immediately. And now to figure out how to fix this 
+
+  2005-05-06 15:59:29 (r21) by martijn; t/10_resolver.t A; MANIFEST M
+
+    r5550@fangorn: martijn | 2005-05-06 17:01:48 +0200 add DNS tests 
+
+  2005-05-06 15:59:18 (r20) by martijn; Client-Keepalive.pm M
+
+    r5549@fangorn: martijn | 2005-05-06 16:59:39 +0200 use PoCo::SSLify
+    when the scheme is https. an imap component might want us to check
+    for imaps too for example, but we'll worry about that when it starts
+    to exist :) 
+
+  2005-05-06 15:59:07 (r19) by martijn; Client-Keepalive.pm M
+
+    r5548@fangorn: martijn | 2005-05-06 16:58:35 +0200 remove timer for
+    requests for which thea DNS lookup fails 
+
+  2005-05-06 15:58:57 (r18) by martijn; Client-Keepalive.pm M
+
+    r5547@fangorn: martijn | 2005-05-06 16:57:47 +0200 add some debugging
+    output 
+
+  2005-05-06 15:58:31 (r17) by martijn
+  t/07_keep_alive.t M; t/01_socket_reuse.t M; t/05_errors.t M;
+  t/06_activity.t M; Makefile.PL M; t/04_free_each.t M; t/03_each_queue.t
+  M; t/08_quick_reuse.t M; Client-Keepalive.pm M
+
+    r5546@fangorn: martijn | 2005-05-06 16:53:12 +0200 Make it use
+    Client::DNS. and adjust the tests to use localhost instead of its IP
+    (except for a few for better coverage) 
+
+  2005-05-05 05:25:51 (r16) by rcaputo; mylib/TestServer.pm M
+
+    Add a shutdown_clients() method so tests can shutdown all the clients
+    at once. Also make the server more robust against race conditions by
+    not calling put() on a disconnected client. 
+
+  2005-05-05 05:24:45 (r15) by rcaputo; Conn-Keepalive.pm M
+
+    Destroy the connection object's wheel before freeing the underlying
+    socket. Otherwise there's overlap between it and the keepalive pool
+    while they both have select_read() on the socket. 
+
+=========================
 2005-04-15 15:49:56 v0_02
 =========================
 
-  2005-04-15 15:49:56 by rcaputo; Client-Keepalive.pm 1.5;
-  t/01_socket_reuse.t 1.2; t/02_socket_queue.t 1.3;
-  t/03_each_queue.t 1.3; t/04_free_each.t 1.3; t/06_activity.t 1.2;
-  t/07_keep_alive.t 1.3; t/08_quick_reuse.t 1.3; t/09_timeout.t 1.2
+  2005-04-15 15:49:56 (r13) by rcaputo
+  t/07_keep_alive.t M; t/01_socket_reuse.t M; t/02_socket_queue.t M;
+  t/09_timeout.t M; t/06_activity.t M; t/04_free_each.t M;
+  t/03_each_queue.t M; t/08_quick_reuse.t M; Client-Keepalive.pm M
 
     Applied Martijn van Beers' patch to make Client::Keepalive never
     return the connection immediately. Rather, it always posts
@@ -14,9 +109,10 @@
     usage since the pattern was to post the immediately returned
     connection to a common got-a-connection handler anyway. 
 
-  2004-10-06 02:41:06 by rcaputo; Client-Keepalive.pm 1.4;
-  t/02_socket_queue.t 1.2; t/03_each_queue.t 1.2; t/04_free_each.t 1.2;
-  t/05_errors.t 1.2; t/07_keep_alive.t 1.2; t/08_quick_reuse.t 1.2
+  2004-10-06 02:41:06 (r12) by rcaputo
+  t/07_keep_alive.t M; t/02_socket_queue.t M; t/05_errors.t M;
+  t/04_free_each.t M; t/03_each_queue.t M; t/08_quick_reuse.t M;
+  Client-Keepalive.pm M
 
     Remove the component's alias during shutdown(). This immediately
     kills off the component when it's done shutting down. The component's
@@ -24,18 +120,18 @@
     cleanup in the tests. This commit fixes the tests so they stop dying
     and some junk. 
 
-  2004-10-06 02:15:23 by rcaputo; Client-Keepalive.pm 1.3
+  2004-10-06 02:15:23 (r11) by rcaputo; Client-Keepalive.pm M
 
     Ah, there's no need to pass %args to a session initializer if they
     aren't being used there anyway. 
 
-  2004-10-06 02:12:16 by rcaputo; Client-Keepalive.pm 1.2
+  2004-10-06 02:12:16 (r10) by rcaputo; Client-Keepalive.pm M
 
     Remove some parameters we're not using. This eliminates all use of
     HEAP in the code. Looks like object-based sessions are more powerful
     than I originally thought. 
 
-  2004-10-06 01:47:03 by rcaputo; Makefile.PL 1.3
+  2004-10-06 01:47:03 (r9) by rcaputo; Makefile.PL M
 
     Well, technically, it doesn't need all these funky prerequisites.
     They're holdovers from when this Makefile.PL belonged to
@@ -45,31 +141,33 @@
 2004-10-03 16:58:01 v0_01
 =========================
 
-  2004-10-03 16:58:01 by rcaputo; MANIFEST 1.3
+  2004-10-03 16:58:01 (r7) by rcaputo; MANIFEST M
 
     "make dist" added META.yml to the MANIFEST, so let's commit that. The
     META.yml file is not included since it's generated during "make
     dist". 
 
-  2004-10-03 16:55:39 by rcaputo; MANIFEST 1.2; Makefile.PL 1.2
+  2004-10-03 16:55:39 (r6) by rcaputo
+  MANIFEST M; Makefile.PL M; CHANGES D
 
     CHANGES should be dynamically generated. Removed that. Mix in the
     code to generate CHANGES during "make dist". And cvr.perl moved, so
     reflect that in the MANIFEST. 
 
-===========================
-2004-10-03 16:50:29 rcaputo
-===========================
+  2004-10-03 16:50:28 (r2) by rcaputo
+  README A; mylib/TestServer.pm A; t/01_socket_reuse.t A;
+  t/02_socket_queue.t A; t/09_timeout.t A; t A; MANIFEST A;
+  t/06_activity.t A; mylib/cvr.perl A; CHANGES A; t/04_free_each.t A;
+  Conn-Keepalive.pm A; t/03_each_queue.t A; mylib A; t/07_keep_alive.t A;
+  t/05_errors.t A; Makefile.PL A; t/08_quick_reuse.t A;
+  Client-Keepalive.pm A
 
-  2004-10-03 16:50:29 by rcaputo; Client-Keepalive.pm 1.1;
-  Conn-Keepalive.pm 1.1; MANIFEST 1.1; Makefile.PL 1.1; README 1.1;
-  mylib/TestServer.pm 1.1; mylib/cvr.perl 1.1; t/01_socket_reuse.t 1.1;
-  t/02_socket_queue.t 1.1; t/03_each_queue.t 1.1; t/04_free_each.t 1.1;
-  t/05_errors.t 1.1; t/06_activity.t 1.1; t/07_keep_alive.t 1.1;
-  t/08_quick_reuse.t 1.1; t/09_timeout.t 1.1
+    Initial revision 
 
-    branches: 1.1.1; Initial revision 
+  2004-10-03 16:50:28 (r1) by (nobody); /trunk A; /branches A; /tags A
 
-=============================
-Beginning of Recorded History
-=============================
+    New repository initialized by cvs2svn.
+
+==============
+End of Excerpt
+==============

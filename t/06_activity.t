@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 06_activity.t,v 1.2 2005/04/15 15:49:56 rcaputo Exp $
+# $Id: 06_activity.t 17 2005-05-06 15:58:31Z martijn $
 
 # Test activity on idle connections in the pool.
 
@@ -41,7 +41,7 @@ sub start {
   {
     $heap->{cm}->allocate(
       scheme  => "http",
-      addr    => "127.0.0.1",
+      addr    => "localhost",
       port    => PORT,
       event   => "got_conn",
       context => "first",
@@ -74,7 +74,7 @@ sub check_for_input {
 
   $heap->{cm}->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => PORT,
     event   => "got_conn2",
     context => "first",

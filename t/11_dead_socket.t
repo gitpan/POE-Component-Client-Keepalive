@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 03_each_queue.t 17 2005-05-06 15:58:31Z martijn $
+# $Id: 03_each_queue.t,v 1.3 2005/04/15 15:49:56 rcaputo Exp $
 
 # Test connection queuing.  Set the per-connection queue to be really
 # small (one in all), and then try to allocate two connections.  The
@@ -8,7 +8,7 @@
 use warnings;
 use strict;
 use lib qw(./mylib ../mylib);
-use Test::More tests => 8;
+use Test::More tests => 7;
 
 sub POE::Kernel::ASSERT_DEFAULT () { 1 }
 
@@ -27,10 +27,10 @@ POE::Session->create(
     _stop           => sub { },
     got_error       => \&got_error,
     got_first_conn  => \&got_first_conn,
-    got_fourth_conn => \&got_fourth_conn,
-    got_third_conn => \&got_third_conn,
-    got_timeout     => \&got_timeout,
-    test_pool_alive => \&test_pool_alive,
+    cleanup1        => \&cleanup1,
+    cleanup         => \&cleanup,
+    error	    => \&error,
+    input	    => \&input,
   }
 );
 
@@ -78,61 +78,49 @@ sub got_first_conn {
   ok(defined($conn), "$which connection established asynchronously");
   if ($which eq 'first') {
     ok(not (defined ($stuff->{from_cache})), "$which not from cache");
+    my $wheel = $conn->start(
+    	ErrorEvent => 'error',
+	InputEvent => 'cleanup1',
+      );
+    $heap->{conn} = $conn;
+    TestServer->send_something;
   } else {
-    is($stuff->{from_cache}, 'deferred', "$which deferred from cache");
+    ok(not (defined ($stuff->{from_cache})), "$which not from cache");
+    my $wheel = $conn->start(
+    	ErrorEvent => 'error',
+	InputEvent => 'input',
+      );
+    TestServer->send_something;
+    $heap->{conn} = $conn;
+    $kernel->delay_add ('cleanup', 1);
   }
-
-  $kernel->yield("test_pool_alive");
 }
 
-sub got_third_conn {
-  my ($kernel, $heap, $stuff) = @_[KERNEL, HEAP, ARG0];
-
-  my $conn = $stuff->{connection};
-  my $which = $stuff->{context};
-  ok(defined($conn), "$which connection established asynchronously");
-  is($stuff->{from_cache}, 'immediate', "$which connection request honored from pool immediately");
+sub cleanup1 {
+  is ($_[ARG1], $_[HEAP]->{conn}->wheel->ID, "input for correct wheel");
+  $_[HEAP]->{wheelid} = $_[ARG1];
+  TestServer->shutdown_clients;
+  delete $_[HEAP]->{conn};
 }
 
-# We need a free connection pool of 2 or more for this next test.  We
-# want to allocate and free one of them to make sure the pool is not
-# destroyed.  Yay, Devel::Cover, for making me actually do this.
-
-sub test_pool_alive {
-  my ($kernel, $heap) = @_[KERNEL, HEAP];
-
-  $heap->{test_pool_alive}++;
-  return unless $heap->{test_pool_alive} == 2;
-
-  $heap->{cm}->allocate(
-    scheme  => "http",
-    addr    => "localhost",
-    port    => PORT,
-    event   => "got_third_conn",
-    context => "third",
-  );
-
-  $heap->{cm}->allocate(
-    scheme  => "http",
-    addr    => "localhost",
-    port    => PORT,
-    event   => "got_fourth_conn",
-    context => "fourth",
-  );
+sub cleanup {
+  delete $_[HEAP]->{conn};
+  TestServer->shutdown;
 }
 
-sub got_fourth_conn {
-  my ($kernel, $heap, $stuff) = @_[KERNEL, HEAP, ARG0];
-
-  my $conn = delete $stuff->{connection};
-  ok(defined($conn), "fourth connection established asynchronously");
-  is ($stuff->{from_cache}, 'deferred', "connection from pool");
-
-  $conn = undef;
-
-  TestServer->shutdown();
-  $heap->{cm}->shutdown();
+sub error {
+  my $heap = $_[HEAP];
+  is ($heap->{wheelid}, $heap->{conn}->wheel->ID, "eof arrives at same wheel");
+  delete $_[HEAP]->{wheelid};
+  $heap->{conn}->wheel->shutdown_input;
+  $heap->{conn}->wheel->shutdown_output;
+  delete $heap->{conn};
 }
 
+sub input {
+  $_[HEAP]->{wheelid} = $_[ARG1];
+  ok (1, "input arrives from new socket");
+  TestServer->shutdown_clients;
+}
 POE::Kernel->run();
 exit;

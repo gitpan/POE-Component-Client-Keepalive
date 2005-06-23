@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 07_keep_alive.t,v 1.3 2005/04/15 15:49:56 rcaputo Exp $
+# $Id: 07_keep_alive.t 17 2005-05-06 15:58:31Z martijn $
 
 # Test keepalive.  Allocates a connection, frees it, waits for the
 # keep-alive timeout, allocates an identical connection.  The second
@@ -43,7 +43,7 @@ sub start {
 
   $heap->{cm}->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => PORT,
     event   => "got_first_conn",
     context => "first",
@@ -70,7 +70,7 @@ sub keepalive_over {
 
   $heap->{cm}->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => PORT,
     event   => "got_conn",
     context => "second",
@@ -78,7 +78,7 @@ sub keepalive_over {
 
   $heap->{cm}->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => PORT,
     event   => "got_conn",
     context => "third",

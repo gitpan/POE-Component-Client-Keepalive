@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 01_socket_reuse.t,v 1.2 2005/04/15 15:49:56 rcaputo Exp $
+# $Id: 01_socket_reuse.t 17 2005-05-06 15:58:31Z martijn $
 
 # Test connection reuse.  Allocates a connection, frees it, and
 # allocates another.  The second allocation should return right away
@@ -36,7 +36,7 @@ sub start {
 
   $heap->{cm}->allocate(
     scheme  => "http",
-    addr    => "127.0.0.1",
+    addr    => "localhost",
     port    => PORT,
     event   => "got_conn",
     context => "first",
@@ -59,7 +59,7 @@ sub got_conn{
     ok(not (defined ($is_cached)), "$which request not from cache");
     $heap->{cm}->allocate(
      scheme  => "http",
-     addr    => "127.0.0.1",
+     addr    => "localhost",
      port    => PORT,
      event   => "got_conn",
      context => "second",

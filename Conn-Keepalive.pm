@@ -1,4 +1,4 @@
-# $Id: Conn-Keepalive.pm,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: Conn-Keepalive.pm 27 2005-06-21 17:36:19Z rcaputo $
 
 # This is a proxy object for a socket.  Its most important feature is
 # that it passes the socket back to POE::Component::Client::Keepalive
@@ -10,7 +10,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = do {my@r=(q$Revision: 1.1.1.1 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
+$VERSION = do {my($r)=(q$Revision: 27 $=~/(\d+)/);sprintf"1.%04d",$r};
 
 use Carp qw(croak);
 use POE::Wheel::ReadWrite;
@@ -38,6 +38,7 @@ sub new {
 
 sub DESTROY {
   my $self = shift;
+  $self->[CK_WHEEL] = undef;
   $self->[CK_MANAGER]->free($self->[CK_SOCKET]);
 }
 

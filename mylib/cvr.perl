@@ -1,4 +1,4 @@
-# $Id: cvr.perl,v 1.1.1.1 2004/10/03 16:50:29 rcaputo Exp $
+# $Id: cvr.perl 2 2004-10-03 16:50:28Z rcaputo $
 
 # Be warned: Pod::Coverage will add a lot of time to the tests.
 # Before: Files=8, Tests=51, 74 wallclock secs (...)
