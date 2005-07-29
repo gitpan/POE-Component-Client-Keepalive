@@ -1,4 +1,39 @@
 =========================
+2005-07-29 16:02:20 v0_04
+=========================
+
+  2005-07-29 16:02:02 (r35) by rcaputo
+  Makefile.PL M; Client-Keepalive.pm M
+
+    Bump the version for release, and increase the version of the
+    Client::DNS dependency to "the latest". 
+
+  2005-07-29 15:54:39 (r34) by rcaputo; t/50_bisbee_timeout.t A
+
+    I forgot to add Jeff Bisbee's regression test. Aaaaaugh! 
+
+  2005-07-28 05:57:46 (r33) by rcaputo
+  t/01_socket_reuse.t M; MANIFEST M; t/03_each_queue.t M;
+  Client-Keepalive.pm M
+
+    Jeff Bisbee discovered that Client::Keepalive may return multiple
+    responses for a single request. This causes bizarre behavior (usually
+    crashes) in the likes of POE::Component::Client::HTTP. This commit
+    adds a regression test for the issue and patches Client::Keepalive to
+    avoid redundant responses. 
+
+  2005-07-25 18:50:37 (r32) by rcaputo; Client-Keepalive.pm M
+
+    Replace tabs with an appropriate number of spaces. At some point
+    we'll need to just go with tabs-indent; spaces-align behavior. 
+
+  2005-06-23 02:13:42 (r31) by rcaputo; README M
+
+    Update the README for the new documentation. TODO: Automate this for
+    distributions where the README is merely the main module's perldoc
+    directed to a text file. 
+
+=========================
 2005-06-23 01:11:36 v0_03
 =========================
 

@@ -1,5 +1,6 @@
 #!/usr/bin/perl
-# $Id: 03_each_queue.t 17 2005-05-06 15:58:31Z martijn $
+# $Id: 03_each_queue.t 33 2005-07-28 05:57:46Z rcaputo $
+# vim: filetype=perl
 
 # Test connection queuing.  Set the per-connection queue to be really
 # small (one in all), and then try to allocate two connections.  The

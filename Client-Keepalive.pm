@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm 29 2005-06-23 01:04:12Z rcaputo $
+# $Id: Client-Keepalive.pm 35 2005-07-29 16:02:02Z rcaputo $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.03";
+$VERSION = "0.04";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT);
@@ -76,6 +76,7 @@ sub RQ_TIMEOUT  () {  8 }   #   $request_timeout,
 sub RQ_START    () {  9 }   #   $request_start_time,
 sub RQ_TIMER_ID () { 10 }   #   $request_timer_id,
 sub RQ_WHEEL_ID () { 11 }   #   $request_wheel_id,
+sub RQ_ACTIVE   () { 12 }   #   $request_is_active,
                             # ];
 
 # Create a connection manager.
@@ -132,9 +133,9 @@ sub new {
         ka_socket_activity   => "_ka_socket_activity",
         ka_keepalive_timeout => "_ka_keepalive_timeout",
         ka_wake_up           => "_ka_wake_up",
-  ka_resolve_request   => "_ka_resolve_request",
-  ka_add_to_queue       => "_ka_add_to_queue",
-  ka_dns_response       => "_ka_dns_response",
+        ka_resolve_request   => "_ka_resolve_request",
+        ka_add_to_queue      => "_ka_add_to_queue",
+        ka_dns_response      => "_ka_dns_response",
       },
     ],
   );
@@ -177,11 +178,9 @@ sub _ka_wake_up {
   foreach my $request (@{$self->[SF_QUEUE]}) {
     DEBUG and warn "checking for $request->[RQ_CONN_KEY]";
 
-    # Sweep away requests that are marked as timed out.  That is,
-    # requests without a valid timer ID.  Add the request index to the
-    # splice list, and skip any further processing.
+    # Sweep away inactive requests.
 
-    unless (defined $request->[RQ_TIMER_ID]) {
+    unless ($request->[RQ_ACTIVE]) {
       push @splice_list, $request_index;
       next;
     }
@@ -201,20 +200,13 @@ sub _ka_wake_up {
     if ($existing_connection) {
       push @splice_list, $request_index;
 
-      $kernel->alarm_remove($request->[RQ_TIMER_ID]);
-
-      $kernel->post(
-        $request->[RQ_SESSION],
-        $request->[RQ_EVENT],
-        {
-          addr       => $request->[RQ_ADDRESS],
-          context    => $request->[RQ_CONTEXT],
-          port       => $request->[RQ_PORT],
-          scheme     => $request->[RQ_SCHEME],
+      _respond(
+        $request, {
           connection => $existing_connection,
           from_cache => "deferred",
         }
       );
+
       next;
     }
 
@@ -314,8 +306,9 @@ sub allocate {
 
   my $existing_connection = $self->_check_free_pool($conn_key);
   if (defined $existing_connection) {
-    $poe_kernel->post ($poe_kernel->get_active_session, $event =>
-      {
+    $poe_kernel->post(
+      $poe_kernel->get_active_session,
+      $event => {
         addr       => $address,
         context    => $context,
         port       => $port,
@@ -335,7 +328,7 @@ sub allocate {
     $event,     # RQ_EVENT
     $scheme,    # RQ_SCHEME
     $address,   # RQ_ADDRESS
-    undef,  # RQ_IP
+    undef,      # RQ_IP
     $port,      # RQ_PORT
     $conn_key,  # RQ_CONN_KEY
     $context,   # RQ_CONTEXT
@@ -343,9 +336,10 @@ sub allocate {
     time(),     # RQ_START
     undef,      # RQ_TIMER_ID
     undef,      # RQ_WHEEL_ID
+    1,          # RQ_ACTIVE
   ];
 
-  $poe_kernel->call("$self", "ka_set_timeout", $request);
+  $poe_kernel->call("$self", ka_set_timeout     => $request);
   $poe_kernel->post("$self", ka_resolve_request => $request);
 
   return;
@@ -366,9 +360,10 @@ sub _ka_set_timeout {
 sub _ka_request_timeout {
   my ($self, $kernel, $request) = @_[OBJECT, KERNEL, ARG0];
 
-  DEBUG and
-    warn "CON: request from session", $request->[RQ_SESSION]->ID,
-   " for address ", $request->[RQ_ADDRESS], " timed out";
+  DEBUG and warn(
+    "CON: request from session", $request->[RQ_SESSION]->ID,
+    " for address ", $request->[RQ_ADDRESS], " timed out"
+  );
   $! = ETIMEDOUT;
 
   # The easiest way to do this?  Simulate an error from the wheel
@@ -380,18 +375,7 @@ sub _ka_request_timeout {
   }
 
   # But what if there is no wheel?
-
-  $kernel->post(
-    $request->[RQ_SESSION],
-    $request->[RQ_EVENT],
-    _error_response ($request, "connect", $! + 0, "$!"),
-  );
-
-  # And mark the request as dead.
-  # TODO - Perhaps by using a separate flag, but the timer ID is
-  # handy.
-
-  $request->[RQ_TIMER_ID] = undef;
+  _respond_with_error($request, "connect", $! + 0, "$!"),
 }
 
 # Connection failed.  Remove the SF_WHEELS record corresponding to the
@@ -414,16 +398,8 @@ sub _ka_conn_failure {
   my $request_key = $request->[RQ_CONN_KEY];
   $self->_decrement_used_each($request_key);
 
-  # Stop the timer.
-  $_[KERNEL]->alarm_remove($request->[RQ_TIMER_ID]);
-  $request->[RQ_TIMER_ID] = undef;
-
   # Tell the requester about the failure.
-  $_[KERNEL]->post(
-    $request->[RQ_SESSION],
-    $request->[RQ_EVENT],
-    _error_response ($request, $func, $errnum, $errstr),
-  );
+  _respond_with_error($request, $func, $errnum, $errstr),
 }
 
 # Connection succeeded.  Remove the SF_WHEELS record corresponding to
@@ -449,9 +425,6 @@ sub _ka_conn_success {
   $self->[SF_USED]{$socket} = $used;
   DEBUG and warn "posting... to $request->[RQ_SESSION] . $request->[RQ_EVENT]";
 
-  # Stop the timer.
-  $_[KERNEL]->alarm_remove($request->[RQ_TIMER_ID]);
-
   # Build a connection object around the socket.
   my $connection = POE::Component::Connection::Keepalive->new(
     socket  => $socket,
@@ -459,14 +432,8 @@ sub _ka_conn_success {
   );
 
   # Give the socket to the requester.
-  $_[KERNEL]->post(
-    $request->[RQ_SESSION],
-    $request->[RQ_EVENT],
-    {
-      addr       => $request->[RQ_ADDRESS],
-      context    => $request->[RQ_CONTEXT],
-      port       => $request->[RQ_PORT],
-      scheme     => $request->[RQ_SCHEME],
+  _respond(
+    $request, {
       connection => $connection,
     }
   );
@@ -573,7 +540,7 @@ sub _ka_reclaim_socket {
       DEBUG and warn "uh oh, socket activity";
       $status = sysread($socket, my $buf = "", 65536);
       if (DEBUG and defined $status) {
-  warn "read $status bytes. 0 means EOF";
+        warn "read $status bytes. 0 means EOF";
       }
     }
   }
@@ -671,13 +638,14 @@ sub _ka_resolve_request {
       $heap->{resolve}->{$host} = [ $request ];
 
       my $response = $self->[SF_RESOLVER]->resolve(
-    event => 'ka_dns_response',
-    host => $host,
-    context => 1,
-  );
-  
+        event   => 'ka_dns_response',
+        host    => $host,
+        context => 1,
+      );
+
       if ($response) {
-  $kernel->yield (ka_dns_response => $response);
+        DEBUG and warn "DNS: resolver returned immediately";
+        $kernel->yield (ka_dns_response => $response);
       }
     }
   } else {
@@ -697,15 +665,20 @@ sub _ka_dns_response {
   DEBUG and warn "DNS: request address = $request_address";
 
   # No requests are on record for this lookup.
+  # TODO - What if the requests were canceled, possibly due to a
+  # timeout?  The answer: Timeouts don't cancel DNS requests, so we
+  # still get the response (eventually) and clean up the resolver
+  # thingy here.  DNS request piggybacking should prevent this from
+  # being called multiple times, so we should be safe there, too.
+  # Leave the die() in until coverage == 100%, so we can catch
+  # possible bugs in the future.
   die "!!!: Unexpectedly undefined requests" unless defined $requests;
 
-  # No response.
+  # No response.  This is an error.  Cancel all requests for the
+  # address.  Tell everybody that their requests timed out.
   unless (defined $response_object) {
     foreach my $request (@$requests) {
-      $kernel->alarm_remove ($request->[RQ_TIMER_ID]);
-      $kernel->post ($request->[RQ_SESSION], $request->[RQ_EVENT] =>
-    _error_response ($request, "resolve", undef, $response_error),
-  );
+      _respond_with_error($request, "resolve", undef, $response_error),
     }
     return;
   }
@@ -719,6 +692,8 @@ sub _ka_dns_response {
       warn "DNS: $request_address resolves to ", $answer->rdatastr;
 
     foreach my $request (@$requests) {
+      # Don't bother continuing inactive requests.
+      next unless $request->[RQ_ACTIVE];
       $request->[RQ_IP] = $answer->rdatastr;
       $kernel->yield(ka_add_to_queue => $request);
     }
@@ -730,10 +705,7 @@ sub _ka_dns_response {
   # Didn't return here.  No address record for the host?
   foreach my $request (@$requests) {
     DEBUG and warn "DNS: $request_address does not resolve";
-    $kernel->alarm_remove ($request->[RQ_TIMER_ID]);
-    $kernel->post ($request->[RQ_SESSION], $request->[RQ_EVENT],
-  _error_response ($request, "resolve", undef, "Host has no address."),
-      );
+    _respond_with_error($request, "resolve", undef, "Host has no address."),
   }
 }
 
@@ -790,22 +762,47 @@ sub _remove_socket_from_pool {
   $poe_kernel->select_read($socket, undef);
 }
 
-sub _error_response {
-  my ($request, $func, $num, $string) = @_;
+# Internal function.  NOT AN EVENT HANDLER.
 
-  return
+sub _respond_with_error {
+  my ($request, $func, $num, $string) = @_;
+  _respond(
+    $request,
     {
-      addr       => $request->[RQ_ADDRESS],
-      context    => $request->[RQ_CONTEXT],
-      port       => $request->[RQ_PORT],
-      scheme     => $request->[RQ_SCHEME],
       connection => undef,
       function   => $func,
       error_num  => $num,
       error_str  => $string,
     }
-  ;
+  );
+}
 
+sub _respond {
+  my ($request, $fields) = @_;
+
+  # Bail out early if the request isn't active.
+  return unless $request->[RQ_ACTIVE];
+
+  $poe_kernel->post(
+    $request->[RQ_SESSION],
+    $request->[RQ_EVENT],
+    {
+      addr       => $request->[RQ_ADDRESS],
+      context    => $request->[RQ_CONTEXT],
+      port       => $request->[RQ_PORT],
+      scheme     => $request->[RQ_SCHEME],
+      %$fields,
+    }
+  );
+
+  # Remove associated timer.
+  if ($request->[RQ_TIMER_ID]) {
+    $poe_kernel->alarm_remove($request->[RQ_TIMER_ID]);
+    $request->[RQ_TIMER_ID] = undef;
+  }
+
+  # Deactivate the request.
+  $request->[RQ_ACTIVE] = undef;
 }
 
 1;

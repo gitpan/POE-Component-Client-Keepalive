@@ -1,5 +1,6 @@
 #!/usr/bin/perl
-# $Id: 01_socket_reuse.t 17 2005-05-06 15:58:31Z martijn $
+# $Id: 01_socket_reuse.t 33 2005-07-28 05:57:46Z rcaputo $
+# vim: filetype=perl
 
 # Test connection reuse.  Allocates a connection, frees it, and
 # allocates another.  The second allocation should return right away

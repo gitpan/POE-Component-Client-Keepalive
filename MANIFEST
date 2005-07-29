@@ -1,4 +1,4 @@
-# $Id: MANIFEST 26 2005-06-21 15:14:28Z rcaputo $
+# $Id: MANIFEST 33 2005-07-28 05:57:46Z rcaputo $
 CHANGES
 Client-Keepalive.pm
 Conn-Keepalive.pm
@@ -18,4 +18,5 @@ t/08_quick_reuse.t
 t/09_timeout.t
 t/10_resolver.t
 t/11_dead_socket.t
+t/50_bisbee_timeout.t
 META.yml                                 Module meta-data (added by MakeMaker)

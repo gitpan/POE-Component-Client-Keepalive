@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 26 2005-06-21 15:14:28Z rcaputo $
+# $Id: Makefile.PL 35 2005-07-29 16:02:02Z rcaputo $
 
 use ExtUtils::MakeMaker;
 
@@ -17,7 +17,7 @@ WriteMakefile(
   },
   PREREQ_PM    => {
     'POE'                         => 0.31,
-    'POE::Component::Client::DNS' => 0.98,
+    'POE::Component::Client::DNS' => 0.9801,
     'POE::Component::SSLify'      => 0.04,
   },
   dist         => {
