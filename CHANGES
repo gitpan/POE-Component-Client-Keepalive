@@ -1,4 +1,20 @@
 =========================
+2005-09-13 15:52:00 v0_05
+=========================
+
+  2005-09-13 15:51:04 (r38) by rcaputo; Client-Keepalive.pm M
+
+    Now we are 0.05! 
+
+  2005-09-04 18:56:42 (r37) by rcaputo
+  t/04_free_each.t M; Client-Keepalive.pm M
+
+    The code to reclaim freed sockets tests to see whether the freed
+    socket is still usable. It did not check whether the socket was
+    actually open! This patch adds that check, hopefully robustifying the
+    code a little. 
+
+=========================
 2005-07-29 16:02:20 v0_04
 =========================
 
