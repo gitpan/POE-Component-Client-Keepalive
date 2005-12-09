@@ -1,4 +1,20 @@
 =========================
+2005-12-09 05:56:38 v0_06
+=========================
+
+  2005-12-09 05:50:54 (r41) by rcaputo
+  .releaserc A; Client-Keepalive.pm M
+
+    Add a .releaserc for Module::Release, and bump up the version. 
+
+  2005-09-17 18:26:46 (r40) by rcaputo
+  Makefile.PL M; Client-Keepalive.pm M
+
+    Apply a semi-anonymous guest patch to make POE::Component::SSLify an
+    optional dependancy. It defers errors regarding missing SSL support
+    to runtime. This resolves rt.cpan.org ticket 14253. 
+
+=========================
 2005-09-13 15:52:00 v0_05
 =========================
 
@@ -187,37 +203,6 @@
     Well, technically, it doesn't need all these funky prerequisites.
     They're holdovers from when this Makefile.PL belonged to
     POE::Component::Client::HTTP. 
-
-=========================
-2004-10-03 16:58:01 v0_01
-=========================
-
-  2004-10-03 16:58:01 (r7) by rcaputo; MANIFEST M
-
-    "make dist" added META.yml to the MANIFEST, so let's commit that. The
-    META.yml file is not included since it's generated during "make
-    dist". 
-
-  2004-10-03 16:55:39 (r6) by rcaputo
-  MANIFEST M; Makefile.PL M; CHANGES D
-
-    CHANGES should be dynamically generated. Removed that. Mix in the
-    code to generate CHANGES during "make dist". And cvr.perl moved, so
-    reflect that in the MANIFEST. 
-
-  2004-10-03 16:50:28 (r2) by rcaputo
-  README A; mylib/TestServer.pm A; t/01_socket_reuse.t A;
-  t/02_socket_queue.t A; t/09_timeout.t A; t A; MANIFEST A;
-  t/06_activity.t A; mylib/cvr.perl A; CHANGES A; t/04_free_each.t A;
-  Conn-Keepalive.pm A; t/03_each_queue.t A; mylib A; t/07_keep_alive.t A;
-  t/05_errors.t A; Makefile.PL A; t/08_quick_reuse.t A;
-  Client-Keepalive.pm A
-
-    Initial revision 
-
-  2004-10-03 16:50:28 (r1) by (nobody); /trunk A; /branches A; /tags A
-
-    New repository initialized by cvs2svn.
 
 ==============
 End of Excerpt

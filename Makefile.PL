@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 35 2005-07-29 16:02:02Z rcaputo $
+# $Id: Makefile.PL 40 2005-09-17 18:26:46Z rcaputo $
 
 use ExtUtils::MakeMaker;
 
@@ -18,14 +18,13 @@ WriteMakefile(
   PREREQ_PM    => {
     'POE'                         => 0.31,
     'POE::Component::Client::DNS' => 0.9801,
-    'POE::Component::SSLify'      => 0.04,
+    # 'POE::Component::SSLify'      => 0.04,  # optional now
   },
   dist         => {
     COMPRESS   => 'gzip -9f',
     SUFFIX     => 'gz',
     PREOP      => (
-      'svn-log.perl --repo https://thirdlobe.com/svn/poco-client-keepalive |' .
-      'tee ./$(DISTNAME)-$(VERSION)/CHANGES > ./CHANGES'
+      'svn-log.perl | tee ./$(DISTNAME)-$(VERSION)/CHANGES > ./CHANGES'
     ),
   },
 );

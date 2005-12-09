@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm 38 2005-09-13 15:51:04Z rcaputo $
+# $Id: Client-Keepalive.pm 41 2005-12-09 05:50:54Z rcaputo $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.05";
+$VERSION = "0.06";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT);
@@ -15,7 +15,12 @@ use POE;
 use POE::Wheel::SocketFactory;
 use POE::Component::Connection::Keepalive;
 use POE::Component::Client::DNS;
-use POE::Component::SSLify qw( Client_SSLify);
+
+my $ssl_available;
+eval {
+  require POE::Component::SSLify;
+  $ssl_available = 1;
+};
 
 use constant DEBUG => 0;
 
@@ -417,7 +422,10 @@ sub _ka_conn_success {
   my $used = delete $self->[SF_USED]{$wheel_id};
 
   if ($request->[RQ_SCHEME] eq 'https') {
-    $socket = Client_SSLify ($socket);
+    unless ($ssl_available) {
+      die "There is no SSL support, please install POE::Component::SSLify";
+    }
+    $socket = POE::Component::SSLify::Client_SSLify ($socket);
   }
 
   $used->[USED_SOCKET] = $socket;
