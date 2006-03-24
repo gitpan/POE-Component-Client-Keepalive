@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 40 2005-09-17 18:26:46Z rcaputo $
+# $Id: Makefile.PL 47 2006-03-24 14:37:14Z rcaputo $
 
 use ExtUtils::MakeMaker;
 
@@ -20,6 +20,11 @@ WriteMakefile(
     'POE::Component::Client::DNS' => 0.9801,
     # 'POE::Component::SSLify'      => 0.04,  # optional now
   },
+  EXTRA_META   => (
+    "no_index:\n" .
+    "    dir:\n" .
+    "        - mylib\n"
+  ),
   dist         => {
     COMPRESS   => 'gzip -9f',
     SUFFIX     => 'gz',

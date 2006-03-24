@@ -1,3 +1,20 @@
+===========================
+2006-03-24 14:37:41 v0_0701
+===========================
+
+  2006-03-24 14:37:14 (r47) by rcaputo
+  Makefile.PL M; Client-Keepalive.pm M
+
+    Try ExtUtils::MakeMaker 6.30_01's EXTRA_META feature to stop people
+    from indexing the mylib directory. Damn them. Also, bump up the
+    version for a new release. 
+
+  2006-03-24 13:58:40 (r46) by rcaputo; Client-Keepalive.pm M
+
+    Fix a problem where connection error messages were not propagated
+    back to the user. I was using $@ rather than $! in one place. D'oh!
+    Also fixed some tab damage while I was here. 
+
 =========================
 2006-03-24 02:46:37 v0_07
 =========================

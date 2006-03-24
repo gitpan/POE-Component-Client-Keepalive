@@ -1,12 +1,17 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         POE-Component-Client-Keepalive
-version:      0.07
-version_from: Client-Keepalive.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                POE-Component-Client-Keepalive
+version:             0.0701
+abstract:            Manages and keeps alive client connections
+license:             unknown
+generated_by:        ExtUtils::MakeMaker version 6.30_01
+author:              Rocco Caputo <rcaputo@cpan.org>
+distribution_type:   module
+requires:     
     POE:                           0.31
     POE::Component::Client::DNS:   0.9801
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.28
+meta-spec:
+    url: <http://module-build.sourceforge.net/META-spec-new.html>;
+    version: 1.1
+no_index:
+    dir:
+        - mylib
