@@ -1,4 +1,30 @@
 ===========================
+2006-03-29 15:27:27 v0_0702
+===========================
+
+  2006-03-29 15:26:30 (r52) by rcaputo; t/02_socket_queue.t M
+
+    The "connection refused" message seems to vary between Unixy systems
+    and Windows (what a surprise!). Make the comparison case and
+    whitespace insensitive, and display the actual value in the test
+    report. Future failures will tell me what the test should be looking
+    for. 
+
+  2006-03-29 15:22:43 (r51) by rcaputo; Makefile.PL M
+
+    Make the EXTRA_META parameters to ExtUtils::MakeMaker contingent upon
+    the presence of a sufficient version of that module. 
+
+  2006-03-29 15:22:01 (r50) by rcaputo; Client-Keepalive.pm M
+
+    Set version for release. 
+
+  2006-03-25 20:25:56 (r49) by rcaputo; Makefile.PL M
+
+    Perhaps fix the no_index YAML. We'll see if TestServer.pm is indexed
+    in the next release. 
+
+===========================
 2006-03-24 14:37:41 v0_0701
 ===========================
 

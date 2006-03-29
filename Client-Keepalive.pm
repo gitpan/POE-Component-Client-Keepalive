@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm 47 2006-03-24 14:37:14Z rcaputo $
+# $Id: Client-Keepalive.pm 50 2006-03-29 15:22:01Z rcaputo $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.0701";
+$VERSION = "0.0702";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT);

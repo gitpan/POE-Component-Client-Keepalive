@@ -1,5 +1,6 @@
 #!/usr/bin/perl
-# $Id: 02_socket_queue.t 13 2005-04-15 15:49:56Z rcaputo $
+# $Id: 02_socket_queue.t 52 2006-03-29 15:26:30Z rcaputo $
+# vim: filetype=perl
 
 # Test connection queuing.  Set the max active connection to be really
 # small (one in all), and then try to allocate two connections.  The
@@ -95,9 +96,9 @@ sub got_third_conn {
   my $conn = $stuff->{connection};
   my $which = $stuff->{context};
   ok(
-		defined($stuff->{from_cache}),
-		"$which connection request honored from pool"
-	);
+    defined($stuff->{from_cache}),
+    "$which connection request honored from pool"
+  );
 
   $conn = undef;
 }
@@ -139,7 +140,12 @@ sub got_fourth_conn {
 
   ok($stuff->{function} eq "connect", "connection failed in connect");
   ok($stuff->{error_num} == ECONNREFUSED, "connection error ECONNREFUSED");
-  ok($stuff->{error_str} eq "Connection refused", "connection refused");
+
+  my $lc_str = lc $stuff->{error_str};
+  ok(
+    $lc_str =~ /connection\s+refused/i,
+    "error string: wanted(connection refused) got($lc_str)"
+  );
 
   # Shut things down.
   TestServer->shutdown();
