@@ -1,4 +1,21 @@
 ===========================
+2006-03-29 18:31:38 v0_0703
+===========================
+
+  2006-03-29 18:31:18 (r56) by rcaputo; Client-Keepalive.pm M
+
+    $VERSION += 0.0001. 
+
+  2006-03-29 18:29:49 (r55) by rcaputo; t/02_socket_queue.t M
+
+    ActivePerl knows ECONNREFUSED by its other popular name, "unknown
+    error". 
+
+  2006-03-29 16:09:44 (r54) by rcaputo; Makefile.PL M
+
+    ExtUtils::MakeMaker's version is a STRING! A STRING! 
+
+===========================
 2006-03-29 15:27:27 v0_0702
 ===========================
 
