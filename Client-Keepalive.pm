@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm 56 2006-03-29 18:31:18Z rcaputo $
+# $Id: Client-Keepalive.pm 61 2006-05-21 00:35:30Z rcaputo $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.0703";
+$VERSION = "0.08";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT);
@@ -177,8 +177,7 @@ sub _ka_wake_up {
   # process.
 
   my $request_index  = 0;
-  my @free_sockets   = keys(%{$self->[SF_SOCKETS]});
-  my $currently_open = keys(%{$self->[SF_USED]}) + @free_sockets;
+  my $currently_open = keys(%{$self->[SF_USED]}) + keys(%{$self->[SF_SOCKETS]});
   my @splice_list;
 
   QUEUED:
@@ -216,14 +215,18 @@ sub _ka_wake_up {
 
       next;
     }
-
+    
+    # we can't easily take this out of the outer loop since _check_free_pool
+    # can change it from under us
+    my @free_sockets   = keys(%{$self->[SF_SOCKETS]});
+ 
     # Try to free over-committed (but unused) sockets until we're back
     # under SF_MAX_OPEN sockets.  Bail out if we can't free enough.
     # TODO - Consider removing @free_sockets in least- to
     # most-recently used order.
     while ($currently_open >= $self->[SF_MAX_OPEN]) {
       last QUEUED unless @free_sockets;
-      my $next_to_go = splice(@free_sockets, rand(@free_sockets), 1);
+      my $next_to_go = $free_sockets[rand(@free_sockets)];
       $self->_remove_socket_from_pool($next_to_go);
       $currently_open--;
     }
@@ -548,6 +551,10 @@ sub _ka_reclaim_socket {
     my ($rout, $eout);
     $nfound = select ($rout=$rin, undef, $eout=$rin, 0);
     DEBUG and warn "select results: $nfound";
+
+    if ($nfound == -1) {
+      die "select failed: $!";
+    }
 
     if ($nfound) {
       use bytes;

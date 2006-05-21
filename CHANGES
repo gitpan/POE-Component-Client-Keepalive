@@ -1,3 +1,34 @@
+=========================
+2006-05-21 00:35:41 v0_08
+=========================
+
+  2006-05-21 00:35:30 (r61) by rcaputo; Client-Keepalive.pm M
+
+    Bump up the version for release. 
+
+  2006-05-10 20:42:27 (r60) by woggle
+  t/13_close.t A; MANIFEST M; Conn-Keepalive.pm M; Client-Keepalive.pm M
+
+    Add close() method to Conn-Keepalive so that sockets can be closed
+    prematurely (and so we can avoid reusing sockets that are still
+    recieving a response we are not interested as if they were idle).
+    Bump up version number so PoCoCliHTTP can depend on this
+    functionality. Add test case for it.
+    
+    Also check for select() failing (e.g. 'bad file descriptor') in
+    Client-Keepalive's check of socket readiness instead of silently
+    trying to sysread() in that case. 
+
+  2006-05-09 06:14:16 (r59) by woggle; MANIFEST M
+
+    Oops, forgot to update the MANIFEST. 
+
+  2006-05-09 06:11:06 (r58) by woggle
+  t/51_reiss_reuse.t A; Client-Keepalive.pm M
+
+    Fix bug and add test case for bug where a socket would be reused and
+    then free'd by _ka_wake_up when we were at the connection limit. 
+
 ===========================
 2006-03-29 18:31:38 v0_0703
 ===========================
@@ -238,50 +269,6 @@
     Destroy the connection object's wheel before freeing the underlying
     socket. Otherwise there's overlap between it and the keepalive pool
     while they both have select_read() on the socket. 
-
-=========================
-2005-04-15 15:49:56 v0_02
-=========================
-
-  2005-04-15 15:49:56 (r13) by rcaputo
-  t/07_keep_alive.t M; t/01_socket_reuse.t M; t/02_socket_queue.t M;
-  t/09_timeout.t M; t/06_activity.t M; t/04_free_each.t M;
-  t/03_each_queue.t M; t/08_quick_reuse.t M; Client-Keepalive.pm M
-
-    Applied Martijn van Beers' patch to make Client::Keepalive never
-    return the connection immediately. Rather, it always posts
-    connections back, even if they can be immediately satisfied from the
-    component's connection cache. This simplifies the module's general
-    usage since the pattern was to post the immediately returned
-    connection to a common got-a-connection handler anyway. 
-
-  2004-10-06 02:41:06 (r12) by rcaputo
-  t/07_keep_alive.t M; t/02_socket_queue.t M; t/05_errors.t M;
-  t/04_free_each.t M; t/03_each_queue.t M; t/08_quick_reuse.t M;
-  Client-Keepalive.pm M
-
-    Remove the component's alias during shutdown(). This immediately
-    kills off the component when it's done shutting down. The component's
-    immediate destruction triggers some ASSERT errors due to sloppy
-    cleanup in the tests. This commit fixes the tests so they stop dying
-    and some junk. 
-
-  2004-10-06 02:15:23 (r11) by rcaputo; Client-Keepalive.pm M
-
-    Ah, there's no need to pass %args to a session initializer if they
-    aren't being used there anyway. 
-
-  2004-10-06 02:12:16 (r10) by rcaputo; Client-Keepalive.pm M
-
-    Remove some parameters we're not using. This eliminates all use of
-    HEAP in the code. Looks like object-based sessions are more powerful
-    than I originally thought. 
-
-  2004-10-06 01:47:03 (r9) by rcaputo; Makefile.PL M
-
-    Well, technically, it doesn't need all these funky prerequisites.
-    They're holdovers from when this Makefile.PL belonged to
-    POE::Component::Client::HTTP. 
 
 ==============
 End of Excerpt
