@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 02_socket_queue.t 55 2006-03-29 18:29:49Z rcaputo $
+# $Id: 02_socket_queue.t 64 2006-05-21 20:54:23Z rcaputo $
 # vim: filetype=perl
 
 # Test connection queuing.  Set the max active connection to be really
@@ -142,11 +142,13 @@ sub got_fourth_conn {
   ok($stuff->{error_num} == ECONNREFUSED, "connection error ECONNREFUSED");
 
   my $lc_str = lc $stuff->{error_str};
-	my @wanted = ( "connection refused" );
-	push @wanted, "unknown error" if $^O eq "MSWin32";
+
+  $! = ECONNREFUSED;
+  my @wanted = ( lc "$!" );
+  push @wanted, "unknown error" if $^O eq "MSWin32";
 
   ok(
-		(grep { $lc_str eq $_ } @wanted),
+    (grep { $lc_str eq $_ } @wanted),
     "error string: wanted(connection refused) got($lc_str)"
   );
 

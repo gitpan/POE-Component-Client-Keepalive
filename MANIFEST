@@ -1,4 +1,4 @@
-# $Id: MANIFEST 60 2006-05-10 20:42:27Z woggle $
+# $Id: MANIFEST 63 2006-05-21 00:39:16Z rcaputo $
 CHANGES
 Client-Keepalive.pm
 Conn-Keepalive.pm

@@ -1,3 +1,31 @@
+===========================
+2006-05-21 20:57:19 v0_0801
+===========================
+
+  2006-05-21 20:57:06 (r66) by rcaputo; Client-Keepalive.pm M
+
+    Bump the version for release. 
+
+  2006-05-21 20:56:44 (r65) by rcaputo; Client-Keepalive.pm M
+
+    Replace asynchronous events from command methods with call(), so that
+    internal structures can be altered synchronously. This eliminates a
+    lot of race conditions, and it may become standard for the proxy
+    object pattern.
+    
+    Improve shutdown() greatly. Cascade shutdown to the embedded DNS
+    component. Clean up extra references, and generally make this work. 
+
+  2006-05-21 20:54:23 (r64) by rcaputo; t/02_socket_queue.t M
+
+    Don't check against literal "connection refused". Rather, check
+    against the stringified version of $! = ECONNREFUSED. This should be
+    much more portable. 
+
+  2006-05-21 00:39:16 (r63) by rcaputo; MANIFEST M
+
+    Remove META.yml. It's generated during "make dist". 
+
 =========================
 2006-05-21 00:35:41 v0_08
 =========================
