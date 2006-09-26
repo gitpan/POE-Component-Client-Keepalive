@@ -1,4 +1,35 @@
 ===========================
+2006-09-26 17:58:09 v0_0901
+===========================
+
+  2006-09-26 17:57:54 (r73) by rcaputo; Client-Keepalive.pm M
+
+    Bump version to 0.0901 to work around a PAUSE mishap. 
+
+=========================
+2006-09-26 17:45:57 v0_09
+=========================
+
+  2006-09-26 17:45:14 (r71) by rcaputo; Client-Keepalive.pm M
+
+    New release - 0.09. 
+
+  2006-09-25 10:23:24 (r70) by joel; Client-Keepalive.pm M
+
+    fixed connection manager deallocate() method to deallocate a
+    connection cleanly whether or not it is connected
+
+  2006-09-23 23:11:23 (r69) by rcaputo; Client-Keepalive.pm M
+
+    Register an event handler I forgot when making the previous commit. 
+
+  2006-09-23 23:09:29 (r68) by rcaputo; Client-Keepalive.pm M
+
+    Apply a heavily modified version of Joel Bernstein's patch to allow
+    pending connection requests to be canceled. He probably won't
+    recognize most of the code. 
+
+===========================
 2006-05-21 20:57:19 v0_0801
 ===========================
 
@@ -151,152 +182,6 @@
     Apply a semi-anonymous guest patch to make POE::Component::SSLify an
     optional dependancy. It defers errors regarding missing SSL support
     to runtime. This resolves rt.cpan.org ticket 14253. 
-
-=========================
-2005-09-13 15:52:00 v0_05
-=========================
-
-  2005-09-13 15:51:04 (r38) by rcaputo; Client-Keepalive.pm M
-
-    Now we are 0.05! 
-
-  2005-09-04 18:56:42 (r37) by rcaputo
-  t/04_free_each.t M; Client-Keepalive.pm M
-
-    The code to reclaim freed sockets tests to see whether the freed
-    socket is still usable. It did not check whether the socket was
-    actually open! This patch adds that check, hopefully robustifying the
-    code a little. 
-
-=========================
-2005-07-29 16:02:20 v0_04
-=========================
-
-  2005-07-29 16:02:02 (r35) by rcaputo
-  Makefile.PL M; Client-Keepalive.pm M
-
-    Bump the version for release, and increase the version of the
-    Client::DNS dependency to "the latest". 
-
-  2005-07-29 15:54:39 (r34) by rcaputo; t/50_bisbee_timeout.t A
-
-    I forgot to add Jeff Bisbee's regression test. Aaaaaugh! 
-
-  2005-07-28 05:57:46 (r33) by rcaputo
-  t/01_socket_reuse.t M; MANIFEST M; t/03_each_queue.t M;
-  Client-Keepalive.pm M
-
-    Jeff Bisbee discovered that Client::Keepalive may return multiple
-    responses for a single request. This causes bizarre behavior (usually
-    crashes) in the likes of POE::Component::Client::HTTP. This commit
-    adds a regression test for the issue and patches Client::Keepalive to
-    avoid redundant responses. 
-
-  2005-07-25 18:50:37 (r32) by rcaputo; Client-Keepalive.pm M
-
-    Replace tabs with an appropriate number of spaces. At some point
-    we'll need to just go with tabs-indent; spaces-align behavior. 
-
-  2005-06-23 02:13:42 (r31) by rcaputo; README M
-
-    Update the README for the new documentation. TODO: Automate this for
-    distributions where the README is merely the main module's perldoc
-    directed to a text file. 
-
-=========================
-2005-06-23 01:11:36 v0_03
-=========================
-
-  2005-06-23 01:04:12 (r29) by rcaputo; Client-Keepalive.pm M
-
-    Oops! Something wasn't indented properly! Gasp! 
-
-  2005-06-22 14:40:07 (r28) by rcaputo; Client-Keepalive.pm M
-
-    Bump up the version to 0.03 for release. Also destroy tabs in the
-    file. 
-
-  2005-06-21 17:36:19 (r27) by rcaputo; Conn-Keepalive.pm M
-
-    Fix $VERSION to work with Subversion. 
-
-  2005-06-21 15:14:28 (r26) by rcaputo; MANIFEST M; Makefile.PL M
-
-    Remove META.yml from MANIFEST. It appears to be auto-generated into
-    the distribution at "make dist" time. Replace cvs-log.perl with
-    svn-log.perl in Makefile.PL since we're in Subversion now. 
-
-  2005-05-06 16:18:30 (r25) by rcaputo; Makefile.PL M
-
-    Depend on POE 0.31, and add POE::Component::SSLify as a dependency. 
-
-  2005-05-06 16:00:19 (r24) by martijn
-  t/11_dead_socket.t M; Client-Keepalive.pm M
-
-    r5553@fangorn: martijn | 2005-05-06 17:59:52 +0200 Fix for the
-    connection being closed on the server side, but not waiting for the
-    EOF on the client side if the connection is closed before the
-    Connection object is released. We don't reuse the socket in that case
-    anymore. Now to try to find a way to do the same if the connection
-    closing happens after the Connection object goes away. In this case,
-    the socket may have already been reused, so the new client still gets
-    an EOF 'error' as the first event, and nothing else. 
-
-  2005-05-06 16:00:02 (r23) by martijn
-  mylib/TestServer.pm M; t/11_dead_socket.t M
-
-    r5552@fangorn: martijn | 2005-05-06 17:58:48 +0200 fix test and
-    TestServer 
-
-  2005-05-06 15:59:44 (r22) by martijn
-  mylib/TestServer.pm M; MANIFEST M; t/11_dead_socket.t A
-
-    r5551@fangorn: martijn | 2005-05-06 17:14:53 +0200 Add tests for bug
-    where we throw away the connection right before we get EOF, and it
-    gets reused and the new connection gets an EOF error event
-    immediately. And now to figure out how to fix this 
-
-  2005-05-06 15:59:29 (r21) by martijn; t/10_resolver.t A; MANIFEST M
-
-    r5550@fangorn: martijn | 2005-05-06 17:01:48 +0200 add DNS tests 
-
-  2005-05-06 15:59:18 (r20) by martijn; Client-Keepalive.pm M
-
-    r5549@fangorn: martijn | 2005-05-06 16:59:39 +0200 use PoCo::SSLify
-    when the scheme is https. an imap component might want us to check
-    for imaps too for example, but we'll worry about that when it starts
-    to exist :) 
-
-  2005-05-06 15:59:07 (r19) by martijn; Client-Keepalive.pm M
-
-    r5548@fangorn: martijn | 2005-05-06 16:58:35 +0200 remove timer for
-    requests for which thea DNS lookup fails 
-
-  2005-05-06 15:58:57 (r18) by martijn; Client-Keepalive.pm M
-
-    r5547@fangorn: martijn | 2005-05-06 16:57:47 +0200 add some debugging
-    output 
-
-  2005-05-06 15:58:31 (r17) by martijn
-  t/07_keep_alive.t M; t/01_socket_reuse.t M; t/05_errors.t M;
-  t/06_activity.t M; Makefile.PL M; t/04_free_each.t M; t/03_each_queue.t
-  M; t/08_quick_reuse.t M; Client-Keepalive.pm M
-
-    r5546@fangorn: martijn | 2005-05-06 16:53:12 +0200 Make it use
-    Client::DNS. and adjust the tests to use localhost instead of its IP
-    (except for a few for better coverage) 
-
-  2005-05-05 05:25:51 (r16) by rcaputo; mylib/TestServer.pm M
-
-    Add a shutdown_clients() method so tests can shutdown all the clients
-    at once. Also make the server more robust against race conditions by
-    not calling put() on a disconnected client. 
-
-  2005-05-05 05:24:45 (r15) by rcaputo; Conn-Keepalive.pm M
-
-    Destroy the connection object's wheel before freeing the underlying
-    socket. Otherwise there's overlap between it and the keepalive pool
-    while they both have select_read() on the socket. 
 
 ==============
 End of Excerpt
