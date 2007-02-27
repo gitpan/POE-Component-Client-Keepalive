@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 02_socket_queue.t 64 2006-05-21 20:54:23Z rcaputo $
+# $Id: 02_socket_queue.t 77 2006-10-17 06:54:34Z rcaputo $
 # vim: filetype=perl
 
 # Test connection queuing.  Set the max active connection to be really
@@ -10,7 +10,7 @@ use warnings;
 use strict;
 use lib qw(./mylib ../mylib);
 use Test::More tests => 9;
-use Errno qw(ECONNREFUSED);
+use Errno qw(ECONNREFUSED ETIMEDOUT);
 
 sub POE::Kernel::ASSERT_DEFAULT () { 1 }
 
@@ -139,12 +139,17 @@ sub got_fourth_conn {
   ok(!defined($conn), "fourth connection failed (as it should)");
 
   ok($stuff->{function} eq "connect", "connection failed in connect");
-  ok($stuff->{error_num} == ECONNREFUSED, "connection error ECONNREFUSED");
+  ok(
+    ($stuff->{error_num} == ECONNREFUSED) || ($stuff->{error_num} == ETIMEDOUT),
+    "connection error ECONNREFUSED"
+  );
 
   my $lc_str = lc $stuff->{error_str};
 
   $! = ECONNREFUSED;
   my @wanted = ( lc "$!" );
+  $! = ETIMEDOUT;
+  push @wanted, "$!";
   push @wanted, "unknown error" if $^O eq "MSWin32";
 
   ok(

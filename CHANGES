@@ -1,3 +1,30 @@
+======================================
+9999-99-99 99:99:99.999999Z (untagged)
+======================================
+
+  2007-02-27 06:07:28 (r79) by rcaputo; Client-Keepalive.pm M
+
+    Time for a new release.
+
+  2006-11-06 19:23:47 (r78) by rcaputo; Makefile.PL M
+
+    Set a LICENSE. Cheap kwalitee points!
+
+  2006-10-17 06:54:34 (r77) by rcaputo; t/02_socket_queue.t M
+
+    Check for timed out connection attempts. This happens occasionally.
+    Thanks to Charles Ayres for reporting the issue. 
+
+  2006-09-30 04:41:33 (r76) by rcaputo; Client-Keepalive.pm M
+
+    Add a bind_address constructor parameter. When specified, all client
+    sockets will be bound to this address. It follows the same rules as
+    POE::Wheel::SocketFactory's BindAddress. 
+
+  2006-09-28 04:17:23 (r75) by rcaputo; Client-Keepalive.pm M
+
+    Update the copyright, and credit Joel Bernstein and Portugal Telecom. 
+
 ===========================
 2006-09-26 17:58:09 v0_0901
 ===========================
@@ -166,22 +193,6 @@
     
     Also triggered the ASSERT errors from rt.cpan.org ticket #7890. Added
     the SF_SHUTDOWN flag like that ticket suggested, resolving it. 
-
-=========================
-2005-12-09 05:56:38 v0_06
-=========================
-
-  2005-12-09 05:50:54 (r41) by rcaputo
-  .releaserc A; Client-Keepalive.pm M
-
-    Add a .releaserc for Module::Release, and bump up the version. 
-
-  2005-09-17 18:26:46 (r40) by rcaputo
-  Makefile.PL M; Client-Keepalive.pm M
-
-    Apply a semi-anonymous guest patch to make POE::Component::SSLify an
-    optional dependancy. It defers errors regarding missing SSL support
-    to runtime. This resolves rt.cpan.org ticket 14253. 
 
 ==============
 End of Excerpt

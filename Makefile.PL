@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 54 2006-03-29 16:09:44Z rcaputo $
+# $Id: Makefile.PL 78 2006-11-06 19:23:47Z rcaputo $
 
 use strict;
 
@@ -25,6 +25,7 @@ WriteMakefile(
   NAME         => 'POE::Component::Client::Keepalive',
   AUTHOR       => 'Rocco Caputo <rcaputo@cpan.org>',
   ABSTRACT     => 'Manages and keeps alive client connections',
+  LICENSE      => 'perl',
   VERSION_FROM => 'Client-Keepalive.pm',
   PM           => {
     'Client-Keepalive.pm' => '$(INST_LIBDIR)/Keepalive.pm',
