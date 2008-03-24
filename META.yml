@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                POE-Component-Client-Keepalive
-version:             0.1000
+version:             0.1001
 abstract:            Manages and keeps alive client connections
 license:             perl
 generated_by:        ExtUtils::MakeMaker version 6.31

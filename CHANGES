@@ -1,198 +1,24 @@
-======================================
-9999-99-99 99:99:99.999999Z (untagged)
-======================================
+===================================
+2008-03-24T16:40:25.441638Z v0_1001
+===================================
 
-  2007-02-27 06:07:28 (r79) by rcaputo; Client-Keepalive.pm M
+  2008-03-24 16:37:59 (r83) by rcaputo; Client-Keepalive.pm M
 
-    Time for a new release.
+    Release 0.1001
 
-  2006-11-06 19:23:47 (r78) by rcaputo; Makefile.PL M
+  2008-03-24 16:37:27 (r82) by rcaputo; Client-Keepalive.pm M
 
-    Set a LICENSE. Cheap kwalitee points!
+    Resolve an issue where this component's session could shut down
+    before the object. Thanks to Kevin Scaldeferri for reporting the
+    problem in rt.cpan.org ticket 27182. 
 
-  2006-10-17 06:54:34 (r77) by rcaputo; t/02_socket_queue.t M
+  2008-03-24 05:50:40 (r81) by rcaputo
+  t/51_reiss_reuse.t M; t/08_quick_reuse.t M
 
-    Check for timed out connection attempts. This happens occasionally.
-    Thanks to Charles Ayres for reporting the issue. 
-
-  2006-09-30 04:41:33 (r76) by rcaputo; Client-Keepalive.pm M
-
-    Add a bind_address constructor parameter. When specified, all client
-    sockets will be bound to this address. It follows the same rules as
-    POE::Wheel::SocketFactory's BindAddress. 
-
-  2006-09-28 04:17:23 (r75) by rcaputo; Client-Keepalive.pm M
-
-    Update the copyright, and credit Joel Bernstein and Portugal Telecom. 
-
-===========================
-2006-09-26 17:58:09 v0_0901
-===========================
-
-  2006-09-26 17:57:54 (r73) by rcaputo; Client-Keepalive.pm M
-
-    Bump version to 0.0901 to work around a PAUSE mishap. 
-
-=========================
-2006-09-26 17:45:57 v0_09
-=========================
-
-  2006-09-26 17:45:14 (r71) by rcaputo; Client-Keepalive.pm M
-
-    New release - 0.09. 
-
-  2006-09-25 10:23:24 (r70) by joel; Client-Keepalive.pm M
-
-    fixed connection manager deallocate() method to deallocate a
-    connection cleanly whether or not it is connected
-
-  2006-09-23 23:11:23 (r69) by rcaputo; Client-Keepalive.pm M
-
-    Register an event handler I forgot when making the previous commit. 
-
-  2006-09-23 23:09:29 (r68) by rcaputo; Client-Keepalive.pm M
-
-    Apply a heavily modified version of Joel Bernstein's patch to allow
-    pending connection requests to be canceled. He probably won't
-    recognize most of the code. 
-
-===========================
-2006-05-21 20:57:19 v0_0801
-===========================
-
-  2006-05-21 20:57:06 (r66) by rcaputo; Client-Keepalive.pm M
-
-    Bump the version for release. 
-
-  2006-05-21 20:56:44 (r65) by rcaputo; Client-Keepalive.pm M
-
-    Replace asynchronous events from command methods with call(), so that
-    internal structures can be altered synchronously. This eliminates a
-    lot of race conditions, and it may become standard for the proxy
-    object pattern.
-    
-    Improve shutdown() greatly. Cascade shutdown to the embedded DNS
-    component. Clean up extra references, and generally make this work. 
-
-  2006-05-21 20:54:23 (r64) by rcaputo; t/02_socket_queue.t M
-
-    Don't check against literal "connection refused". Rather, check
-    against the stringified version of $! = ECONNREFUSED. This should be
-    much more portable. 
-
-  2006-05-21 00:39:16 (r63) by rcaputo; MANIFEST M
-
-    Remove META.yml. It's generated during "make dist". 
-
-=========================
-2006-05-21 00:35:41 v0_08
-=========================
-
-  2006-05-21 00:35:30 (r61) by rcaputo; Client-Keepalive.pm M
-
-    Bump up the version for release. 
-
-  2006-05-10 20:42:27 (r60) by woggle
-  t/13_close.t A; MANIFEST M; Conn-Keepalive.pm M; Client-Keepalive.pm M
-
-    Add close() method to Conn-Keepalive so that sockets can be closed
-    prematurely (and so we can avoid reusing sockets that are still
-    recieving a response we are not interested as if they were idle).
-    Bump up version number so PoCoCliHTTP can depend on this
-    functionality. Add test case for it.
-    
-    Also check for select() failing (e.g. 'bad file descriptor') in
-    Client-Keepalive's check of socket readiness instead of silently
-    trying to sysread() in that case. 
-
-  2006-05-09 06:14:16 (r59) by woggle; MANIFEST M
-
-    Oops, forgot to update the MANIFEST. 
-
-  2006-05-09 06:11:06 (r58) by woggle
-  t/51_reiss_reuse.t A; Client-Keepalive.pm M
-
-    Fix bug and add test case for bug where a socket would be reused and
-    then free'd by _ka_wake_up when we were at the connection limit. 
-
-===========================
-2006-03-29 18:31:38 v0_0703
-===========================
-
-  2006-03-29 18:31:18 (r56) by rcaputo; Client-Keepalive.pm M
-
-    $VERSION += 0.0001. 
-
-  2006-03-29 18:29:49 (r55) by rcaputo; t/02_socket_queue.t M
-
-    ActivePerl knows ECONNREFUSED by its other popular name, "unknown
-    error". 
-
-  2006-03-29 16:09:44 (r54) by rcaputo; Makefile.PL M
-
-    ExtUtils::MakeMaker's version is a STRING! A STRING! 
-
-===========================
-2006-03-29 15:27:27 v0_0702
-===========================
-
-  2006-03-29 15:26:30 (r52) by rcaputo; t/02_socket_queue.t M
-
-    The "connection refused" message seems to vary between Unixy systems
-    and Windows (what a surprise!). Make the comparison case and
-    whitespace insensitive, and display the actual value in the test
-    report. Future failures will tell me what the test should be looking
-    for. 
-
-  2006-03-29 15:22:43 (r51) by rcaputo; Makefile.PL M
-
-    Make the EXTRA_META parameters to ExtUtils::MakeMaker contingent upon
-    the presence of a sufficient version of that module. 
-
-  2006-03-29 15:22:01 (r50) by rcaputo; Client-Keepalive.pm M
-
-    Set version for release. 
-
-  2006-03-25 20:25:56 (r49) by rcaputo; Makefile.PL M
-
-    Perhaps fix the no_index YAML. We'll see if TestServer.pm is indexed
-    in the next release. 
-
-===========================
-2006-03-24 14:37:41 v0_0701
-===========================
-
-  2006-03-24 14:37:14 (r47) by rcaputo
-  Makefile.PL M; Client-Keepalive.pm M
-
-    Try ExtUtils::MakeMaker 6.30_01's EXTRA_META feature to stop people
-    from indexing the mylib directory. Damn them. Also, bump up the
-    version for a new release. 
-
-  2006-03-24 13:58:40 (r46) by rcaputo; Client-Keepalive.pm M
-
-    Fix a problem where connection error messages were not propagated
-    back to the user. I was using $@ rather than $! in one place. D'oh!
-    Also fixed some tab damage while I was here. 
-
-=========================
-2006-03-24 02:46:37 v0_07
-=========================
-
-  2006-03-24 02:45:46 (r44) by rcaputo; Client-Keepalive.pm M
-
-    Bump up the version for release. 
-
-  2006-03-24 02:44:32 (r43) by rcaputo
-  .releaserc M; t/09_timeout.t M; t/12_extref.t A; MANIFEST M;
-  Client-Keepalive.pm M
-
-    Set extra references on sessions that use Client::Keepalive, so they
-    can stick around until connections are completed. What they do after
-    that is their business. :) Resolves rt.cpan.org ticket #7889.
-    
-    Also triggered the ASSERT errors from rt.cpan.org ticket #7890. Added
-    the SF_SHUTDOWN flag like that ticket suggested, resolving it. 
+    Randomize the ports used by test 08 and 51. Not a perfect solution,
+    but it should avoid most bind errors on systems that don't allow
+    immeditate port reuse. Works around the issue in rt.cpan.org 29097,
+    reported by Andreas J. König. (Wish me luck on the Unicode there.) 
 
 ==============
 End of Excerpt

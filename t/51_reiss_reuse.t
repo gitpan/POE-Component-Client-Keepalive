@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 51_reiss_reuse.t 58 2006-05-09 06:11:06Z woggle $
+# $Id: 51_reiss_reuse.t 81 2008-03-24 05:50:40Z rcaputo $
 
 # Regression test for a bug which occured because a loop
 # that would look for existing free connections would reuse
@@ -18,10 +18,13 @@ use POE::Component::Client::Keepalive;
 
 use TestServer;
 
-use constant PORT => 49018;
+# TODO - Ideally TestServer->spawn() should choose an unused port and
+# return that.
+
+use constant PORT => 49000 + int(rand 1000);
 TestServer->spawn(PORT);
 
-use constant ANOTHER_PORT => 49019;
+use constant ANOTHER_PORT => PORT + 1;
 TestServer->spawn(ANOTHER_PORT);
 
 POE::Session->create(

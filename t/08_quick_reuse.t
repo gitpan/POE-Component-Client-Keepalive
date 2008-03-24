@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 08_quick_reuse.t 17 2005-05-06 15:58:31Z martijn $
+# $Id: 08_quick_reuse.t 81 2008-03-24 05:50:40Z rcaputo $
 
 # Test rapid connection reuse.  Sets the maximum overall connections
 # to a low number.  Allocate up to the maximum.  Reuse one of the
@@ -19,10 +19,13 @@ use POE::Component::Client::Keepalive;
 
 use TestServer;
 
-use constant PORT => 49018;
+# TODO - Ideally TestServer->spawn() should choose an unused port and
+# return that.
+
+use constant PORT => 48000 + int(rand 1000);
 TestServer->spawn(PORT);
 
-use constant ANOTHER_PORT => 49019;
+use constant ANOTHER_PORT => PORT + 1;
 TestServer->spawn(ANOTHER_PORT);
 
 POE::Session->create(
