@@ -1,3 +1,17 @@
+=================================
+2008-07-13T06:50:02.417909Z v0_20
+=================================
+
+  2008-07-13 06:47:46 (r86) by rcaputo; Client-Keepalive.pm M
+
+    Time for a new release.
+
+  2008-07-13 06:23:06 (r85) by rcaputo; Client-Keepalive.pm M
+
+    Improve handling of canceled requests. Avoids DNS response errors and
+    the dreaded "unexpectedly undefined requests" crash. Fix prompted by
+    a test case from Jeff Bisbee. 
+
 ===================================
 2008-03-24T16:40:25.441638Z v0_1001
 ===================================
