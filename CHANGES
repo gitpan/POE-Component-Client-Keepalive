@@ -1,4 +1,13 @@
 =================================
+2008-08-06T19:01:34.101195Z v0_21
+=================================
+
+  2008-08-06 19:01:16 (r88) by rcaputo; Client-Keepalive.pm M
+
+    Reverse the sense of the dotted-quad address test. Resolves
+    rt.cpan.org ticket 38219, reported by Apocalypse. 
+
+=================================
 2008-07-13T06:50:02.417909Z v0_20
 =================================
 

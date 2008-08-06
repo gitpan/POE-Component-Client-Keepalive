@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                POE-Component-Client-Keepalive
-version:             0.20
+version:             0.21
 abstract:            Manages and keeps alive client connections
 license:             perl
 author:              
