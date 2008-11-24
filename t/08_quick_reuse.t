@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: 08_quick_reuse.t 81 2008-03-24 05:50:40Z rcaputo $
+# $Id: 08_quick_reuse.t 92 2008-11-24 22:27:14Z rcaputo $
 
 # Test rapid connection reuse.  Sets the maximum overall connections
 # to a low number.  Allocate up to the maximum.  Reuse one of the
@@ -108,30 +108,30 @@ sub got_another_conn {
   my $conn  = delete $stuff->{connection};
   my $which = $stuff->{context};
 
-	if ($which eq 'third') {
-		is(
-			$stuff->{from_cache}, 'immediate',
-			"$which connection request honored from pool"
-		);
-		return;
-	}
+  if ($which eq 'third') {
+    is(
+      $stuff->{from_cache}, 'immediate',
+      "$which connection request honored from pool"
+    );
+    return;
+  }
 
-	if ($which eq 'fourth') {
-		ok(
-			!defined ($stuff->{from_cache}),
-			"$which connection request honored from pool"
-		);
-		ok(defined($conn), "$which connection established asynchronously");
+  if ($which eq 'fourth') {
+    ok(
+      !defined ($stuff->{from_cache}),
+      "$which connection request honored from pool"
+    );
+    ok(defined($conn), "$which connection established asynchronously");
 
-		# Free the connection first.
-		$conn = undef;
+    # Free the connection first.
+    $conn = undef;
 
-		TestServer->shutdown();
-		$heap->{cm}->shutdown();
-		return;
-	}
+    TestServer->shutdown();
+    $heap->{cm}->shutdown();
+    return;
+  }
 
-	die;
+  die;
 }
 
 POE::Kernel->run();

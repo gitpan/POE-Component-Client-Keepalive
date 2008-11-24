@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                POE-Component-Client-Keepalive
-version:             0.21
+version:             0.23
 abstract:            Manages and keeps alive client connections
 license:             perl
 author:              
@@ -9,7 +9,7 @@ generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
     POE:                           0.31
-    POE::Component::Client::DNS:   0.9801
+    POE::Component::Client::DNS:   1.01
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html
     version: 1.3

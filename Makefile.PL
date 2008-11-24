@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 78 2006-11-06 19:23:47Z rcaputo $
+# $Id: Makefile.PL 93 2008-11-24 22:28:47Z rcaputo $
 
 use strict;
 
@@ -33,7 +33,7 @@ WriteMakefile(
   },
   PREREQ_PM    => {
     'POE'                         => 0.31,
-    'POE::Component::Client::DNS' => 0.9801,
+    'POE::Component::Client::DNS' => 1.01,
   },
   dist         => {
     COMPRESS   => 'gzip -9f',

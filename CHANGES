@@ -1,4 +1,40 @@
 =================================
+2008-11-24T22:37:36.391530Z v0_23
+=================================
+
+  2008-11-24 22:36:21 (r96) by rcaputo; Client-Keepalive.pm M
+
+    Bump again for release.
+
+  2008-11-24 22:35:43 (r95) by rcaputo; Client-Keepalive.pm M
+
+    Don't bother with setsockopt() on filehandles that aren't open. 
+
+=================================
+2008-11-24T22:30:36.636504Z v0_22
+=================================
+
+  2008-11-24 22:28:47 (r93) by rcaputo; Makefile.PL M
+
+    Rely on modern Client::DNS.
+
+  2008-11-24 22:27:14 (r92) by rcaputo
+  t/12_extref.t M; t/50_bisbee_timeout.t M; t/08_quick_reuse.t M;
+  t/11_dead_socket.t M; Client-Keepalive.pm M
+
+    Bump up the version, and fix some tab damage.
+
+  2008-11-24 20:12:23 (r91) by rcaputo
+  t/06_activity.t M; t/04_free_each.t M; Client-Keepalive.pm M
+
+    EXPERIMENTAL: Turn off SO_LINGER when closing kept-alive sockets due
+    to activity while in the pool or being kept in the pool too long. 
+
+  2008-11-21 17:52:56 (r90) by rcaputo; Client-Keepalive.pm M
+
+    Ignore Client::DNS responses if Client:Keepalive has shut down.
+
+=================================
 2008-08-06T19:01:34.101195Z v0_21
 =================================
 
