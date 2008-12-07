@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm 96 2008-11-24 22:36:21Z rcaputo $
+# $Id: Client-Keepalive.pm 99 2008-12-07 03:52:29Z rcaputo $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.23";
+$VERSION = "0.24";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT);
@@ -251,6 +251,9 @@ sub _ka_wake_up {
           from_cache => "deferred",
         }
       );
+
+      # Remove the wheel-to-request index.
+      delete $self->[SF_REQ_INDEX]{$request->[RQ_ID]};
 
       next;
     }
@@ -1007,11 +1010,17 @@ sub _remove_socket_from_pool {
   $poe_kernel->select_read($socket, undef);
 
   # Avoid common FIN_WAIT_2 issues.
-  if (fileno $socket) {
-    setsockopt($socket, SOL_SOCKET, SO_LINGER, pack("sll",1,0,0)) or die(
-      "setsockopt: $!"
-    );
-  }
+  # Commented out because fileno() will return true for closed
+  # sockets, which makes setsockopt() highly unhappy.  Also, SO_LINGER
+  # will cause te socket closure to block, which is less than ideal.
+  # We need to revisit this another way, or just let sockets enter
+  # FIN_WAIT_2.
+
+#  if (fileno $socket) {
+#    setsockopt($socket, SOL_SOCKET, SO_LINGER, pack("sll",1,0,0)) or die(
+#      "setsockopt: $!"
+#    );
+#  }
 }
 
 # Internal function.  NOT AN EVENT HANDLER.

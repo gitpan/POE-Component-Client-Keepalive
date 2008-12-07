@@ -1,4 +1,18 @@
 =================================
+2008-12-07T03:53:59.984618Z v0_24
+=================================
+
+  2008-12-07 03:52:29 (r99) by rcaputo; Client-Keepalive.pm M
+
+    Back out the setsockopt() call because it was causing runtime errors.
+    If we must try to avoid FIN_WAIT_2, we must do it better next time.
+
+  2008-11-30 19:04:51 (r98) by rcaputo; Client-Keepalive.pm M
+
+    Applied Ivan Mitoyarov's patch to completely clean up requests that
+    have been enqueued for a full pool. 
+
+=================================
 2008-11-24T22:37:36.391530Z v0_23
 =================================
 
