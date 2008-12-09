@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 93 2008-11-24 22:28:47Z rcaputo $
+# $Id: Makefile.PL 102 2008-12-08 18:07:54Z rcaputo $
 
 use strict;
 
@@ -10,14 +10,13 @@ open(CHANGES, ">>CHANGES") and close CHANGES;
 
 my @conditional_makefile;
 my $eu_mm_ver = $ExtUtils::MakeMaker::VERSION;
-if ( $eu_mm_ver > 6.30 or $eu_mm_ver =~ /^6\.30_/ ) {
+
+if ($eu_mm_ver >= 6.48) {
   push(
     @conditional_makefile,
-    EXTRA_META  => (
-      "no_index:\n" .
-      "    dir:\n" .
-      "        - mylib\n"
-    )
+    META_MERGE => {
+      no_index => { directory => "mylib" }
+    }
   );
 }
 

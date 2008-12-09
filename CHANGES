@@ -1,4 +1,28 @@
 =================================
+2008-12-09T06:15:39.900728Z v0_25
+=================================
+
+  2008-12-09 06:14:33 (r104) by rcaputo; Client-Keepalive.pm M
+
+    New version.
+
+  2008-12-09 04:55:21 (r103) by rcaputo; Client-Keepalive.pm M
+
+    Do not bother trying to shut down cancelled requests. Attempting to
+    do so only causes heartbreak and crashes when we dereference a string
+    rather than an arrayref.
+
+  2008-12-08 18:07:54 (r102) by rcaputo; Makefile.PL M
+
+    ExtUtils::MakeMaker officially added META_MERGE, which we now use. 
+
+  2008-12-08 17:49:43 (r101) by rcaputo; Client-Keepalive.pm M
+
+    Resolve a memory leak uncovered by jcasey and diagnosed by Apocalypse
+    in irc.perl.org #poe. Request IDs were allocated by not removed when
+    done, so the hash to prevent collisions would only grow over time. 
+
+=================================
 2008-12-07T03:53:59.984618Z v0_24
 =================================
 

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               POE-Component-Client-Keepalive
-version:            0.24
+version:            0.25
 abstract:           Manages and keeps alive client connections
 author:
     - Rocco Caputo <rcaputo@cpan.org>
@@ -15,6 +15,7 @@ no_index:
     directory:
         - t
         - inc
+        - mylib
 generated_by:       ExtUtils::MakeMaker version 6.48
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
