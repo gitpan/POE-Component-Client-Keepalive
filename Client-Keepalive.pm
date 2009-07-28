@@ -1,4 +1,4 @@
-# $Id: Client-Keepalive.pm 104 2008-12-09 06:14:33Z rcaputo $
+# $Id: Client-Keepalive.pm 111 2009-07-28 06:06:04Z rcaputo $
 
 package POE::Component::Client::Keepalive;
 
@@ -6,16 +6,17 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.25";
+$VERSION = "0.260";
 
 use Carp qw(croak);
-use Errno qw(ETIMEDOUT);
+use Errno qw(ETIMEDOUT EBADF);
 use Socket qw(SOL_SOCKET SO_LINGER);
 
 use POE;
 use POE::Wheel::SocketFactory;
 use POE::Component::Connection::Keepalive;
 use POE::Component::Client::DNS;
+use Net::IP qw(ip_is_ipv4);
 
 my $ssl_available;
 eval {
@@ -279,6 +280,7 @@ sub _ka_wake_up {
     # Move the wheel and its request into SF_WHEELS.
     DEBUG and warn "WAKEUP: creating wheel for $req_key";
 
+    # TODO - Set the SocketDomain to AF_INET6 if $addr =~ /:/?
     my $addr = ($request->[RQ_IP] or $request->[RQ_ADDRESS]);
     my $wheel = POE::Wheel::SocketFactory->new(
       BindAddress   => $self->[SF_BIND_ADDR],
@@ -716,15 +718,18 @@ sub _ka_reclaim_socket {
   if ($socket_is_active) {
     DEBUG and warn "RECLAIM: socket is still active; trying to drain";
     use bytes;
+
     my $socket_had_data = sysread($socket, my $buf = "", 65536) || 0;
     DEBUG and warn "RECLAIM: socket had $socket_had_data bytes. 0 means EOF";
     DEBUG and warn "RECLAIM: Giving up on socket.";
 
-    # Avoid common FIN_WAIT_2 issues.
+    # Avoid common FIN_WAIT_2 issues, but only for valid sockets.
+    #if ($socket_had_data and fileno($socket)) {
     if ($socket_had_data) {
-      setsockopt($socket, SOL_SOCKET, SO_LINGER, pack("sll",1,0,0)) or die(
-        "setsockopt: $!"
+      my $opt_result = setsockopt(
+        $socket, SOL_SOCKET, SO_LINGER, pack("sll",1,0,0)
       );
+      die "setsockopt: " . ($!+0) . " $!" if (not $opt_result and $!  != EBADF);
     }
 
     goto &_ka_wake_up;
@@ -872,8 +877,11 @@ sub _ka_resolve_request {
   my $host = $request->[RQ_ADDRESS];
 
   # Skip DNS resolution if it's already a dotted quad.
-  # TODO - Not all dotted quads are good.
-  if ($host =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+  # ip_is_ipv4() doesn't require quads, so we count the dots.
+  #
+  # TODO - Do the same for IPv6 addresses containing colons?
+  # TODO - Would require AF_INET6 support around the SocketFactory.
+  if ((($host =~ tr[.][.]) == 3) and ip_is_ipv4($host)) {
     DEBUG_DNS and warn "DNS: $host is a dotted quad; skipping lookup";
     $kernel->call("$self", ka_add_to_queue => $request);
     return;
@@ -1341,15 +1349,9 @@ keep-alive pool, allowing a program to terminate gracefully.
 L<POE>
 L<POE::Component::Connection::Keepalive>
 
-=head1 BUGS
-
-http://rt.cpan.org/NoAuth/Bugs.html?Dist=POE-Component-Client-Keepalive
-tracks the known issues with this component.  You can add to them by
-sending mail to bug-poe-component-client-keepalive@rt.cpan.org.
-
 =head1 LICENSE
 
-This distribution is copyright 2004-2006 by Rocco Caputo.  All rights
+This distribution is copyright 2004-2009 by Rocco Caputo.  All rights
 are reserved.  This distribution is free software; you may
 redistribute it and/or modify it under the same terms as Perl itself.
 
@@ -1363,5 +1365,17 @@ Rob Bloodgood helped out a lot.  Thank you.
 
 Joel Bernstein solved some nasty race conditions.  Portugal Telecom
 L<http://www.sapo.pt/> was kind enough to support his contributions.
+
+=head1 BUG TRACKER
+
+https://rt.cpan.org/Dist/Display.html?Status=Active&Queue=POE-Component-Client-Keepalive
+
+=head1 REPOSITORY
+
+http://thirdlobe.com/svn/poco-client-keepalive/
+
+=head1 OTHER RESOURCES
+
+http://search.cpan.org/dist/POE-Component-Client-Keepalive/
 
 =cut

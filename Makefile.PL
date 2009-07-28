@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 102 2008-12-08 18:07:54Z rcaputo $
+# $Id: Makefile.PL 111 2009-07-28 06:06:04Z rcaputo $
 
 use strict;
 
@@ -31,8 +31,15 @@ WriteMakefile(
     'Conn-Keepalive.pm'   => '$(INST_LIBDIR)/../Connection/Keepalive.pm',
   },
   PREREQ_PM    => {
-    'POE'                         => 0.31,
-    'POE::Component::Client::DNS' => 1.01,
+    'POE'                         => 1.007,
+    'POE::Component::Client::DNS' => 1.04,
+    'Net::IP'                     => 1.25,
+  },
+  META_ADD     => {
+    resources  => {
+      license    => 'http://dev.perl.org/licenses/',
+      repository => 'http://thirdlobe.com/svn/poco-client-http/trunk'
+    },
   },
   dist         => {
     COMPRESS   => 'gzip -9f',

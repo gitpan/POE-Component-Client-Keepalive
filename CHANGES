@@ -1,3 +1,40 @@
+==================================
+2009-07-28T06:12:42.236838Z v0_260
+==================================
+
+  2009-07-28 06:06:04 (r111) by rcaputo
+  Makefile.PL M; Client-Keepalive.pm M
+
+    Use latest POE, and prepare for a new release.
+
+  2009-07-27 04:55:14 (r110) by rcaputo
+  Makefile.PL M; Client-Keepalive.pm M
+
+    Added a machine-readable repository directory to the distribution.
+    Documented the bug tracker, repository, and other resource URLs. 
+
+  2009-07-27 02:39:01 (r109) by rcaputo; Makefile.PL M
+
+    Set license and repository metadata.
+
+  2009-07-26 18:04:17 (r108) by rcaputo; Client-Keepalive.pm M
+
+    Avoid calling setsockopt() on bad file descriptors. Sometimes a
+    socket is given back to POE::Component::Client::Keepalive, and then
+    it goes bad before it can be reclaimed or discarded. 
+
+  2009-07-26 07:09:17 (r107) by rcaputo; Makefile.PL M
+
+    Set the Net::IP dependency, even though POE::Component::Client::DNS
+    should pull it in via Net::DNS.
+
+  2009-07-26 07:08:00 (r106) by rcaputo; Client-Keepalive.pm M
+
+    Resolve rt.cpan.org 41326, reported by J.G.Konrad and entered into
+    the queue by Chris Williams. Dotted quad detection was pretty weak,
+    but now it uses Net::IP::ip_is_ipv4() to detect whether DNS
+    resolution is needed. 
+
 =================================
 2008-12-09T06:15:39.900728Z v0_25
 =================================
@@ -80,42 +117,6 @@
 
     Reverse the sense of the dotted-quad address test. Resolves
     rt.cpan.org ticket 38219, reported by Apocalypse. 
-
-=================================
-2008-07-13T06:50:02.417909Z v0_20
-=================================
-
-  2008-07-13 06:47:46 (r86) by rcaputo; Client-Keepalive.pm M
-
-    Time for a new release.
-
-  2008-07-13 06:23:06 (r85) by rcaputo; Client-Keepalive.pm M
-
-    Improve handling of canceled requests. Avoids DNS response errors and
-    the dreaded "unexpectedly undefined requests" crash. Fix prompted by
-    a test case from Jeff Bisbee. 
-
-===================================
-2008-03-24T16:40:25.441638Z v0_1001
-===================================
-
-  2008-03-24 16:37:59 (r83) by rcaputo; Client-Keepalive.pm M
-
-    Release 0.1001
-
-  2008-03-24 16:37:27 (r82) by rcaputo; Client-Keepalive.pm M
-
-    Resolve an issue where this component's session could shut down
-    before the object. Thanks to Kevin Scaldeferri for reporting the
-    problem in rt.cpan.org ticket 27182. 
-
-  2008-03-24 05:50:40 (r81) by rcaputo
-  t/51_reiss_reuse.t M; t/08_quick_reuse.t M
-
-    Randomize the ports used by test 08 and 51. Not a perfect solution,
-    but it should avoid most bind errors on systems that don't allow
-    immeditate port reuse. Works around the issue in rt.cpan.org 29097,
-    reported by Andreas J. König. (Wish me luck on the Unicode there.) 
 
 ==============
 End of Excerpt
