@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id: 12_extref.t 92 2008-11-24 22:27:14Z rcaputo $
 # vim: filetype=perl
 
 # Make sure that client sessions stay alive while they're waiting for

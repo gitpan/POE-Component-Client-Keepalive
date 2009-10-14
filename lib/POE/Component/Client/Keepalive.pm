@@ -1,12 +1,10 @@
-# $Id: Client-Keepalive.pm 111 2009-07-28 06:06:04Z rcaputo $
-
 package POE::Component::Client::Keepalive;
 
 use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = "0.260";
+$VERSION = "0.261";
 
 use Carp qw(croak);
 use Errno qw(ETIMEDOUT EBADF);
@@ -1368,11 +1366,12 @@ L<http://www.sapo.pt/> was kind enough to support his contributions.
 
 =head1 BUG TRACKER
 
-https://rt.cpan.org/Dist/Display.html?Status=Active&Queue=POE-Component-Client-Keepalive
+https://rt.cpan.org/Dist/Display.html?Queue=POE-Component-Client-Keepalive
 
 =head1 REPOSITORY
 
-http://thirdlobe.com/svn/poco-client-keepalive/
+http://gitorious.org/poe-component-client-keepalive
+http://github.com/rcaputo/poe-component-client-keepalive
 
 =head1 OTHER RESOURCES
 

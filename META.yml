@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               POE-Component-Client-Keepalive
-version:            0.260
+version:            0.261
 abstract:           Manages and keeps alive client connections
 author:
     - Rocco Caputo <rcaputo@cpan.org>
@@ -12,11 +12,11 @@ build_requires:
     ExtUtils::MakeMaker:  0
 requires:
     Net::IP:              1.25
-    POE:                  1.007
-    POE::Component::Client::DNS:  1.04
+    POE:                  1.28
+    POE::Component::Client::DNS:  1.051
 resources:
     license:     http://dev.perl.org/licenses/
-    repository:  http://thirdlobe.com/svn/poco-client-http/trunk
+    repository:  http://github.com/rcaputo/poe-component-client-keepalive
 no_index:
     directory:
         - t

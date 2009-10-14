@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id: 05_errors.t 17 2005-05-06 15:58:31Z martijn $
 
 # Test various error messages.
 

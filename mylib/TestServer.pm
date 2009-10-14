@@ -1,5 +1,3 @@
-# $Id: TestServer.pm 23 2005-05-06 16:00:02Z martijn $
-
 package TestServer;
 
 use warnings;

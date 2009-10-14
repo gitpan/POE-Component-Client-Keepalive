@@ -1,6 +1,5 @@
 #!/usr/bin/perl
-# $Id: 02_socket_queue.t 77 2006-10-17 06:54:34Z rcaputo $
-# vim: filetype=perl
+# vim: filetype=perl ts=2 sw=2 expandtab
 
 # Test connection queuing.  Set the max active connection to be really
 # small (one in all), and then try to allocate two connections.  The
@@ -20,6 +19,8 @@ use POE::Component::Client::Keepalive;
 use constant PORT => 49018;
 use constant UNKNOWN_PORT => PORT+1;
 use TestServer;
+
+diag("This test may take a long time if your firewall blackholes connections.");
 
 TestServer->spawn(PORT);
 

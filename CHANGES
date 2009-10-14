@@ -1,122 +1,185 @@
-==================================
-2009-07-28T06:12:42.236838Z v0_260
-==================================
+================================
+2009-10-14 03:06:23 -0400 v0_261
+================================
 
-  2009-07-28 06:06:04 (r111) by rcaputo
-  Makefile.PL M; Client-Keepalive.pm M
+  commit 542516fd9fd03e31c92517695588f67c2d72d07c
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Wed Oct 14 03:06:23 2009 -0400
+  
+    Prepare for release.
 
+  commit 8a1b8c59bd71424099241efb75566c63148068c1
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Tue Oct 13 00:53:24 2009 -0400
+  
+    Notify the tester that this may take a long time if their firewall
+    blackholes connections.
+
+  commit 1658afd15631d9ace4f1db98523ef84da3724f29
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Tue Oct 13 00:42:48 2009 -0400
+  
+    Resolve a test bug introduced by POE's new dispatch timing.
+
+    Adam Kennedy reported that t/09_timeout.t was consistently failing
+    under the latest development version of POE. It turned out to be a
+    dodgy test relying on event timing, which was bound to fail sooner or
+    later anyway. This commit removes the reliance on I/O event timing.
+
+  commit 2e16fd0a078c0de6d31a7196cc61215e2332be26
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Oct 12 23:55:27 2009 -0400
+  
+    Add an 00_info.t test to help diagnose platform- and
+    dependency-specific issues.
+
+  commit 74153253f06e11c7e1381581a4a1a1fb991856a8
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Sep 14 11:50:40 2009 -0400
+  
+    Upgrade distribution to git-based workflow. 
+
+================================
+2009-07-28 06:06:04 +0000 v0_260
+================================
+
+  commit 2e720313ceb90bbdcc541cbe23a6809768e8cf1d
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Tue Jul 28 06:06:04 2009 +0000
+  
     Use latest POE, and prepare for a new release.
 
-  2009-07-27 04:55:14 (r110) by rcaputo
-  Makefile.PL M; Client-Keepalive.pm M
-
+  commit 00a3812740c830a8ff05c5cc7a9a0f78782f9f1f
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Jul 27 04:55:14 2009 +0000
+  
     Added a machine-readable repository directory to the distribution.
-    Documented the bug tracker, repository, and other resource URLs. 
+    Documented the bug tracker, repository, and other resource URLs.
 
-  2009-07-27 02:39:01 (r109) by rcaputo; Makefile.PL M
-
+  commit 1264faefc037b9ed93018fb4945354c558534fa7
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Jul 27 02:39:01 2009 +0000
+  
     Set license and repository metadata.
 
-  2009-07-26 18:04:17 (r108) by rcaputo; Client-Keepalive.pm M
-
+  commit 4397723fee192500980e5fee8c2a84af1a12abf6
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Jul 26 18:04:17 2009 +0000
+  
     Avoid calling setsockopt() on bad file descriptors. Sometimes a
     socket is given back to POE::Component::Client::Keepalive, and then
-    it goes bad before it can be reclaimed or discarded. 
+    it goes bad before it can be reclaimed or discarded.
 
-  2009-07-26 07:09:17 (r107) by rcaputo; Makefile.PL M
-
+  commit 62ffc4f55722ee314abef97ac5aea46c9c45a383
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Jul 26 07:09:17 2009 +0000
+  
     Set the Net::IP dependency, even though POE::Component::Client::DNS
     should pull it in via Net::DNS.
 
-  2009-07-26 07:08:00 (r106) by rcaputo; Client-Keepalive.pm M
-
+  commit 7a376c488065fe1874a5e31cf2af3d8fc86c500b
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Jul 26 07:08:00 2009 +0000
+  
     Resolve rt.cpan.org 41326, reported by J.G.Konrad and entered into
     the queue by Chris Williams. Dotted quad detection was pretty weak,
     but now it uses Net::IP::ip_is_ipv4() to detect whether DNS
     resolution is needed. 
 
-=================================
-2008-12-09T06:15:39.900728Z v0_25
-=================================
+===============================
+2008-12-09 06:14:33 +0000 v0_25
+===============================
 
-  2008-12-09 06:14:33 (r104) by rcaputo; Client-Keepalive.pm M
-
+  commit ca606c0f2d25c40926e0231d0a2cb51f79632f0e
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Tue Dec 9 06:14:33 2008 +0000
+  
     New version.
 
-  2008-12-09 04:55:21 (r103) by rcaputo; Client-Keepalive.pm M
-
+  commit 28f2cf72b79471179cad4af6582f9ba37356cdbd
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Tue Dec 9 04:55:21 2008 +0000
+  
     Do not bother trying to shut down cancelled requests. Attempting to
     do so only causes heartbreak and crashes when we dereference a string
     rather than an arrayref.
 
-  2008-12-08 18:07:54 (r102) by rcaputo; Makefile.PL M
+  commit 7144c9761941fd8e4e31071594ea67cb4bf3c285
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Dec 8 18:07:54 2008 +0000
+  
+    ExtUtils::MakeMaker officially added META_MERGE, which we now use.
 
-    ExtUtils::MakeMaker officially added META_MERGE, which we now use. 
-
-  2008-12-08 17:49:43 (r101) by rcaputo; Client-Keepalive.pm M
-
+  commit 7a697de0eeedf575e721eb0ed434e0b325f6865a
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Dec 8 17:49:43 2008 +0000
+  
     Resolve a memory leak uncovered by jcasey and diagnosed by Apocalypse
     in irc.perl.org #poe. Request IDs were allocated by not removed when
     done, so the hash to prevent collisions would only grow over time. 
 
-=================================
-2008-12-07T03:53:59.984618Z v0_24
-=================================
+===============================
+2008-12-07 03:52:29 +0000 v0_24
+===============================
 
-  2008-12-07 03:52:29 (r99) by rcaputo; Client-Keepalive.pm M
-
+  commit 5df32910fab7f73ff579485b667402fc36c280ae
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Dec 7 03:52:29 2008 +0000
+  
     Back out the setsockopt() call because it was causing runtime errors.
     If we must try to avoid FIN_WAIT_2, we must do it better next time.
 
-  2008-11-30 19:04:51 (r98) by rcaputo; Client-Keepalive.pm M
-
+  commit 6086908ff7c95b867b7a5bcde476ebc79f42322a
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Nov 30 19:04:51 2008 +0000
+  
     Applied Ivan Mitoyarov's patch to completely clean up requests that
     have been enqueued for a full pool. 
 
-=================================
-2008-11-24T22:37:36.391530Z v0_23
-=================================
+===============================
+2008-11-24 22:36:21 +0000 v0_23
+===============================
 
-  2008-11-24 22:36:21 (r96) by rcaputo; Client-Keepalive.pm M
-
+  commit 631f85d6004aa6163b66a6ebfd0b095a17c1e419
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Nov 24 22:36:21 2008 +0000
+  
     Bump again for release.
 
-  2008-11-24 22:35:43 (r95) by rcaputo; Client-Keepalive.pm M
-
+  commit 9edc315b51c1f41045607691331893dc00ebed1d
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Nov 24 22:35:43 2008 +0000
+  
     Don't bother with setsockopt() on filehandles that aren't open. 
 
-=================================
-2008-11-24T22:30:36.636504Z v0_22
-=================================
+===============================
+2008-11-24 22:28:47 +0000 v0_22
+===============================
 
-  2008-11-24 22:28:47 (r93) by rcaputo; Makefile.PL M
-
+  commit edff8fd259703a6a10a833136bf2304b34231720
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Nov 24 22:28:47 2008 +0000
+  
     Rely on modern Client::DNS.
 
-  2008-11-24 22:27:14 (r92) by rcaputo
-  t/12_extref.t M; t/50_bisbee_timeout.t M; t/08_quick_reuse.t M;
-  t/11_dead_socket.t M; Client-Keepalive.pm M
-
+  commit fb2b3e03732aaf3caac273153c872f2006946ba5
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Nov 24 22:27:14 2008 +0000
+  
     Bump up the version, and fix some tab damage.
 
-  2008-11-24 20:12:23 (r91) by rcaputo
-  t/06_activity.t M; t/04_free_each.t M; Client-Keepalive.pm M
-
+  commit 12780d0359ba6f9c4ed868a0d831470c690b105c
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Nov 24 20:12:23 2008 +0000
+  
     EXPERIMENTAL: Turn off SO_LINGER when closing kept-alive sockets due
-    to activity while in the pool or being kept in the pool too long. 
+    to activity while in the pool or being kept in the pool too long.
 
-  2008-11-21 17:52:56 (r90) by rcaputo; Client-Keepalive.pm M
-
-    Ignore Client::DNS responses if Client:Keepalive has shut down.
-
-=================================
-2008-08-06T19:01:34.101195Z v0_21
-=================================
-
-  2008-08-06 19:01:16 (r88) by rcaputo; Client-Keepalive.pm M
-
-    Reverse the sense of the dotted-quad address test. Resolves
-    rt.cpan.org ticket 38219, reported by Apocalypse. 
+  commit 9a6f2fcd2eeed01e0a8b5ebd5f22dbd97e700910
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Fri Nov 21 17:52:56 2008 +0000
+  
+    Ignore Client::DNS responses if Client:Keepalive has shut down. 
 
 ==============
 End of Excerpt

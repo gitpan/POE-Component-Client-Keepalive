@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id: 08_quick_reuse.t 92 2008-11-24 22:27:14Z rcaputo $
 
 # Test rapid connection reuse.  Sets the maximum overall connections
 # to a low number.  Allocate up to the maximum.  Reuse one of the

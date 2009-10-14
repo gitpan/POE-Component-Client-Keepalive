@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id: 04_free_each.t 91 2008-11-24 20:12:23Z rcaputo $
 
 # Testing the bits that keep track of connections per connection key.
 

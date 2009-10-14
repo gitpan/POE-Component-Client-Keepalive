@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id: Makefile.PL 111 2009-07-28 06:06:04Z rcaputo $
 
 use strict;
 
@@ -25,27 +24,23 @@ WriteMakefile(
   AUTHOR       => 'Rocco Caputo <rcaputo@cpan.org>',
   ABSTRACT     => 'Manages and keeps alive client connections',
   LICENSE      => 'perl',
-  VERSION_FROM => 'Client-Keepalive.pm',
-  PM           => {
-    'Client-Keepalive.pm' => '$(INST_LIBDIR)/Keepalive.pm',
-    'Conn-Keepalive.pm'   => '$(INST_LIBDIR)/../Connection/Keepalive.pm',
-  },
+  VERSION_FROM => 'lib/POE/Component/Client/Keepalive.pm',
   PREREQ_PM    => {
-    'POE'                         => 1.007,
-    'POE::Component::Client::DNS' => 1.04,
+    'POE'                         => 1.280,
+    'POE::Component::Client::DNS' => 1.051,
     'Net::IP'                     => 1.25,
   },
   META_ADD     => {
     resources  => {
       license    => 'http://dev.perl.org/licenses/',
-      repository => 'http://thirdlobe.com/svn/poco-client-http/trunk'
+      repository => 'http://github.com/rcaputo/poe-component-client-keepalive',
     },
   },
   dist         => {
     COMPRESS   => 'gzip -9f',
     SUFFIX     => 'gz',
     PREOP      => (
-      'svn-log.perl | tee ./$(DISTNAME)-$(VERSION)/CHANGES > ./CHANGES'
+      'git-log.pl | tee ./$(DISTNAME)-$(VERSION)/CHANGES > ./CHANGES'
     ),
   },
   @conditional_makefile,

@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id: 01_socket_reuse.t 33 2005-07-28 05:57:46Z rcaputo $
 # vim: filetype=perl
 
 # Test connection reuse.  Allocates a connection, frees it, and

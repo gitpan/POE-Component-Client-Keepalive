@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id: 06_activity.t 91 2008-11-24 20:12:23Z rcaputo $
 
 # Test activity on idle connections in the pool.
 
