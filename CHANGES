@@ -1,4 +1,23 @@
 ================================
+2009-10-18 03:32:52 -0400 v0_262
+================================
+
+  commit e27dad536be976b5883ed5da70389f86052d83d4
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Oct 18 03:32:52 2009 -0400
+  
+    Bump the version for release.
+
+  commit 43b1a784ed8ca9c0715ed578f328dca96ce828ca
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Oct 18 03:30:12 2009 -0400
+  
+    hippietrail on Freenode #perl reported a test failure that turns out
+    to be a connection refused error rather than ETIMEDOUT. We'll skip
+    the test if the connection is refused outright. Thanks to them for
+    interactively trying some things out. 
+
+================================
 2009-10-14 03:06:23 -0400 v0_261
 ================================
 
