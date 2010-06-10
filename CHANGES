@@ -1,4 +1,21 @@
 ================================
+2010-06-10 13:39:43 -0400 v0_263
+================================
+
+  commit e0a13446e43c567de6287276229c1c10cd27b395
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Thu Jun 10 13:39:43 2010 -0400
+  
+    Bump up the version for release.
+
+  commit 2d844f15579e9cc6f47309449d228a3eeb250316
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Thu Jun 10 13:37:27 2010 -0400
+  
+    Fix the case insensitivy of ETIMEDOUT check, per gustavderdrache's
+    report in freenode #perl. 
+
+================================
 2009-10-18 03:32:52 -0400 v0_262
 ================================
 
@@ -104,101 +121,6 @@
     the queue by Chris Williams. Dotted quad detection was pretty weak,
     but now it uses Net::IP::ip_is_ipv4() to detect whether DNS
     resolution is needed. 
-
-===============================
-2008-12-09 06:14:33 +0000 v0_25
-===============================
-
-  commit ca606c0f2d25c40926e0231d0a2cb51f79632f0e
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Tue Dec 9 06:14:33 2008 +0000
-  
-    New version.
-
-  commit 28f2cf72b79471179cad4af6582f9ba37356cdbd
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Tue Dec 9 04:55:21 2008 +0000
-  
-    Do not bother trying to shut down cancelled requests. Attempting to
-    do so only causes heartbreak and crashes when we dereference a string
-    rather than an arrayref.
-
-  commit 7144c9761941fd8e4e31071594ea67cb4bf3c285
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Dec 8 18:07:54 2008 +0000
-  
-    ExtUtils::MakeMaker officially added META_MERGE, which we now use.
-
-  commit 7a697de0eeedf575e721eb0ed434e0b325f6865a
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Dec 8 17:49:43 2008 +0000
-  
-    Resolve a memory leak uncovered by jcasey and diagnosed by Apocalypse
-    in irc.perl.org #poe. Request IDs were allocated by not removed when
-    done, so the hash to prevent collisions would only grow over time. 
-
-===============================
-2008-12-07 03:52:29 +0000 v0_24
-===============================
-
-  commit 5df32910fab7f73ff579485b667402fc36c280ae
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Dec 7 03:52:29 2008 +0000
-  
-    Back out the setsockopt() call because it was causing runtime errors.
-    If we must try to avoid FIN_WAIT_2, we must do it better next time.
-
-  commit 6086908ff7c95b867b7a5bcde476ebc79f42322a
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Nov 30 19:04:51 2008 +0000
-  
-    Applied Ivan Mitoyarov's patch to completely clean up requests that
-    have been enqueued for a full pool. 
-
-===============================
-2008-11-24 22:36:21 +0000 v0_23
-===============================
-
-  commit 631f85d6004aa6163b66a6ebfd0b095a17c1e419
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Nov 24 22:36:21 2008 +0000
-  
-    Bump again for release.
-
-  commit 9edc315b51c1f41045607691331893dc00ebed1d
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Nov 24 22:35:43 2008 +0000
-  
-    Don't bother with setsockopt() on filehandles that aren't open. 
-
-===============================
-2008-11-24 22:28:47 +0000 v0_22
-===============================
-
-  commit edff8fd259703a6a10a833136bf2304b34231720
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Nov 24 22:28:47 2008 +0000
-  
-    Rely on modern Client::DNS.
-
-  commit fb2b3e03732aaf3caac273153c872f2006946ba5
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Nov 24 22:27:14 2008 +0000
-  
-    Bump up the version, and fix some tab damage.
-
-  commit 12780d0359ba6f9c4ed868a0d831470c690b105c
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Nov 24 20:12:23 2008 +0000
-  
-    EXPERIMENTAL: Turn off SO_LINGER when closing kept-alive sockets due
-    to activity while in the pool or being kept in the pool too long.
-
-  commit 9a6f2fcd2eeed01e0a8b5ebd5f22dbd97e700910
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Fri Nov 21 17:52:56 2008 +0000
-  
-    Ignore Client::DNS responses if Client:Keepalive has shut down. 
 
 ==============
 End of Excerpt
