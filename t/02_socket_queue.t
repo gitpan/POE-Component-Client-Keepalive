@@ -15,8 +15,11 @@ sub POE::Kernel::ASSERT_DEFAULT () { 1 }
 
 use POE;
 use POE::Component::Client::Keepalive;
+use POE::Component::Resolver;
+use Socket qw(AF_INET);
 
-use constant PORT => 49018;
+# Random port.  Kludge until TestServer can report a port number.
+use constant PORT => int(rand(65535-2000)) + 2000;
 use constant UNKNOWN_PORT => PORT+1;
 use TestServer;
 
@@ -43,6 +46,7 @@ sub start {
 
   $heap->{cm} = POE::Component::Client::Keepalive->new(
     max_open => 1,
+    resolver => POE::Component::Resolver->new(af_order => [ AF_INET ]),
   );
 
   # Count the number of times test_max_queue is called.  When that's

@@ -1,47 +1,54 @@
-#!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use ExtUtils::MakeMaker;
 
-# Touch CHANGES so it exists.
-open(CHANGES, ">>CHANGES") and close CHANGES;
 
-my @conditional_makefile;
-my $eu_mm_ver = $ExtUtils::MakeMaker::VERSION;
+use ExtUtils::MakeMaker 6.31;
 
-if ($eu_mm_ver >= 6.48) {
-  push(
-    @conditional_makefile,
-    META_MERGE => {
-      no_index => { directory => "mylib" }
+
+
+my %WriteMakefileArgs = (
+  'ABSTRACT' => 'manage connections, with keep-alive',
+  'AUTHOR' => 'Rocco Caputo <rcaputo@cpan.org>',
+  'BUILD_REQUIRES' => {},
+  'CONFIGURE_REQUIRES' => {
+    'ExtUtils::MakeMaker' => '6.31'
+  },
+  'DISTNAME' => 'POE-Component-Client-Keepalive',
+  'EXE_FILES' => [],
+  'LICENSE' => 'perl',
+  'NAME' => 'POE::Component::Client::Keepalive',
+  'PREREQ_PM' => {
+    'Net::IP' => '1.25',
+    'POE' => '1.294_512',
+    'POE::Component::Resolver' => '0.900_161',
+    'POE::Wheel::SocketFactory' => '1.294_512'
+  },
+  'VERSION' => '0.263_161',
+  'test' => {
+    'TESTS' => 't/*.t'
+  }
+);
+
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
     }
-  );
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
 }
 
-WriteMakefile(
-  NAME         => 'POE::Component::Client::Keepalive',
-  AUTHOR       => 'Rocco Caputo <rcaputo@cpan.org>',
-  ABSTRACT     => 'Manages and keeps alive client connections',
-  LICENSE      => 'perl',
-  VERSION_FROM => 'lib/POE/Component/Client/Keepalive.pm',
-  PREREQ_PM    => {
-    'POE'                         => 1.280,
-    'POE::Component::Client::DNS' => 1.051,
-    'Net::IP'                     => 1.25,
-  },
-  META_ADD     => {
-    resources  => {
-      license    => 'http://dev.perl.org/licenses/',
-      repository => 'http://github.com/rcaputo/poe-component-client-keepalive',
-    },
-  },
-  dist         => {
-    COMPRESS   => 'gzip -9f',
-    SUFFIX     => 'gz',
-    PREOP      => (
-      'git-log.pl | tee ./$(DISTNAME)-$(VERSION)/CHANGES > ./CHANGES'
-    ),
-  },
-  @conditional_makefile,
-);
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+

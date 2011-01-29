@@ -14,12 +14,13 @@ sub POE::Kernel::ASSERT_DEFAULT () { 1 }
 
 use POE;
 use POE::Component::Client::Keepalive;
+use POE::Component::Resolver;
+use Socket qw(AF_INET);
 
 use TestServer;
 
-# TODO - Dynamically find ports so we don't conflict with someone.
-# And we WILL conflict with someone sooner or later!
-use constant PORT => 49018;
+# Random port.  Kludge until TestServer can report a port number.
+use constant PORT => int(rand(65535-2000)) + 2000;
 TestServer->spawn(PORT);
 
 # Listen on a socket, but don't accept connections.
@@ -47,7 +48,8 @@ sub start {
   # the timeout negative.  Connections can't happen in the past. :)
 
   $heap->{cm} = POE::Component::Client::Keepalive->new(
-    timeout => -1,
+    timeout  => -1,
+    resolver => POE::Component::Resolver->new(af_order => [ AF_INET ]),
   );
 
   {
@@ -92,6 +94,7 @@ sub got_conn {
 
   return unless ++$heap->{timeout_count} == 2;
 
+  $heap->{cm}->shutdown();
   TestServer->shutdown();
 }
 

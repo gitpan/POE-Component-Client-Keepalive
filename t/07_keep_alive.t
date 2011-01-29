@@ -13,10 +13,13 @@ sub POE::Kernel::ASSERT_DEFAULT () { 1 }
 
 use POE;
 use POE::Component::Client::Keepalive;
+use POE::Component::Resolver;
+use Socket qw(AF_INET);
 
 use TestServer;
 
-use constant PORT => 49018;
+# Random port.  Kludge until TestServer can report a port number.
+use constant PORT => int(rand(65535-2000)) + 2000;
 TestServer->spawn(PORT);
 
 POE::Session->create(
@@ -38,6 +41,7 @@ sub start {
 
   $heap->{cm} = POE::Component::Client::Keepalive->new(
     keep_alive => 1,
+    resolver   => POE::Component::Resolver->new(af_order => [ AF_INET ]),
   );
 
   $heap->{cm}->allocate(

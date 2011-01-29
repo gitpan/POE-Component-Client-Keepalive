@@ -15,9 +15,9 @@ use POE::Wheel::ReadWrite;
 
 use constant DEBUG => 0;
 
-sub CK_SOCKET  () { 0 }  # The socket we're hiding.
-sub CK_MANAGER () { 1 }  # The connection manager that owns the socket.
-sub CK_WHEEL   () { 2 }  # The wheel we're hiding.
+use constant CK_SOCKET  => 0;  # The socket we're hiding.
+use constant CK_MANAGER => 1;  # The connection manager that owns the socket.
+use constant CK_WHEEL   => 2;  # The wheel we're hiding.
 
 # Assimilate a socket on construction, and the keep-alive connection
 # so that free() may be called at destruction time.
@@ -39,7 +39,7 @@ sub new {
 sub DESTROY {
   my $self = shift;
   $self->[CK_WHEEL] = undef;
-  $self->[CK_MANAGER]->free($self->[CK_SOCKET]);
+  $self->[CK_MANAGER] and $self->[CK_MANAGER]->free($self->[CK_SOCKET]);
 }
 
 # Start a Read/Write wheel on the hidden socket.
@@ -99,6 +99,10 @@ __END__
 
 =head1 NAME
 
+
+=head1 VERSION
+
+version 0.263_161
 POE::Component::Connection::Keepalive - a wheel wrapper around a
 kept-alive socket
 
@@ -184,7 +188,7 @@ shutdown_output() on the wheel also.
 
 =back
 
-=item SEE ALSO
+=head1 SEE ALSO
 
 L<POE>
 L<POE::Component::Client::Keepalive>

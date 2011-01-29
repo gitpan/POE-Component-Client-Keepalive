@@ -13,7 +13,7 @@ use Socket qw(SOL_SOCKET SO_LINGER);
 use POE;
 use POE::Wheel::SocketFactory;
 use POE::Component::Connection::Keepalive;
-use POE::Component::Client::DNS;
+use POE::Component::Resolver;
 use Net::IP qw(ip_is_ipv4);
 
 my $ssl_available;
@@ -47,65 +47,66 @@ sub _free_req_id {
 # them arrays.  These constants define offsets into those arrays, and
 # the comments document them.
 
-                             # @$self = (
-sub SF_POOL      () {  0 }   #   \%socket_pool,
-sub SF_QUEUE     () {  1 }   #   \@request_queue,
-sub SF_USED      () {  2 }   #   \%sockets_in_use,
-sub SF_WHEELS    () {  3 }   #   \%wheels_by_id,
-sub SF_USED_EACH () {  4 }   #   \%count_by_triple,
-sub SF_MAX_OPEN  () {  5 }   #   $max_open_count,
-sub SF_MAX_HOST  () {  6 }   #   $max_per_host,
-sub SF_SOCKETS   () {  7 }   #   \%socket_xref,
-sub SF_KEEPALIVE () {  8 }   #   $keep_alive_secs,
-sub SF_TIMEOUT   () {  9 }   #   $default_request_timeout,
-sub SF_RESOLVER  () { 10 }   #   $poco_client_dns_object,
-sub SF_SHUTDOWN  () { 11 }   #   $shutdown_flag,
-sub SF_REQ_INDEX () { 12 }   #   \%request_id_to_wheel_id,
-sub SF_BIND_ADDR () { 13 }   #   $bind_address,
-                             # );
+                                 # @$self = (
+use constant SF_POOL      => 0;  #   \%socket_pool,
+use constant SF_QUEUE     => 1;  #   \@request_queue,
+use constant SF_USED      => 2;  #   \%sockets_in_use,
+use constant SF_WHEELS    => 3;  #   \%wheels_by_id,
+use constant SF_USED_EACH => 4;  #   \%count_by_triple,
+use constant SF_MAX_OPEN  => 5;  #   $max_open_count,
+use constant SF_MAX_HOST  => 6;  #   $max_per_host,
+use constant SF_SOCKETS   => 7;  #   \%socket_xref,
+use constant SF_KEEPALIVE => 8;  #   $keep_alive_secs,
+use constant SF_TIMEOUT   => 9;  #   $default_request_timeout,
+use constant SF_RESOLVER  => 10; #   $poco_client_dns_object,
+use constant SF_SHUTDOWN  => 11; #   $shutdown_flag,
+use constant SF_REQ_INDEX => 12; #   \%request_id_to_wheel_id,
+use constant SF_BIND_ADDR => 13; #   $bind_address,
+                                 # );
 
-                            # $socket_xref{$socket} = [
-sub SK_KEY       () { 0 }   #   $conn_key,
-sub SK_TIMER     () { 1 }   #   $idle_timer,
-                            # ];
+                                 # $socket_xref{$socket} = [
+use constant SK_KEY       => 0;  #   $conn_key,
+use constant SK_TIMER     => 1;  #   $idle_timer,
+                                 # ];
 
-                            # $count_by_triple{$conn_key} = # $conn_count;
+# $count_by_triple{$conn_key} = $conn_count;
 
-                            # $wheels_by_id{$wheel_id} = [
-sub WHEEL_WHEEL   () { 0 }  #   $wheel_object,
-sub WHEEL_REQUEST () { 1 }  #   $request,
-                            # ];
+                                 # $wheels_by_id{$wheel_id} = [
+use constant WHEEL_WHEEL   => 0; #   $wheel_object,
+use constant WHEEL_REQUEST => 1; #   $request,
+                                 # ];
 
-                            # $socket_pool{$conn_key}{$socket} = $socket;
+# $socket_pool{$conn_key}{$socket} = $socket;
 
-                            # $sockets_in_use{$socket} = (
-sub USED_SOCKET () { 0 }    #   $socket_handle,
-sub USED_TIME   () { 1 }    #   $allocation_time,
-sub USED_KEY    () { 2 }    #   $conn_key,
-                            # );
+                                 # $sockets_in_use{$socket} = (
+use constant USED_SOCKET => 0;   #   $socket_handle,
+use constant USED_TIME   => 1;   #   $allocation_time,
+use constant USED_KEY    => 2;   #   $conn_key,
+                                 # );
 
-                            # @request_queue = (
-                            #   $request,
-                            #   $request,
-                            #   ....
-                            # );
+# @request_queue = (
+#   $request,
+#   $request,
+#   ....
+# );
 
-                            # $request = [
-sub RQ_SESSION  () {  0 }   #   $request_session,
-sub RQ_EVENT    () {  1 }   #   $request_event,
-sub RQ_SCHEME   () {  2 }   #   $request_scheme,
-sub RQ_ADDRESS  () {  3 }   #   $request_address,
-sub RQ_IP       () {  4 }   #   $request_ip,
-sub RQ_PORT     () {  5 }   #   $request_port,
-sub RQ_CONN_KEY () {  6 }   #   $request_connection_key,
-sub RQ_CONTEXT  () {  7 }   #   $request_context,
-sub RQ_TIMEOUT  () {  8 }   #   $request_timeout,
-sub RQ_START    () {  9 }   #   $request_start_time,
-sub RQ_TIMER_ID () { 10 }   #   $request_timer_id,
-sub RQ_WHEEL_ID () { 11 }   #   $request_wheel_id,
-sub RQ_ACTIVE   () { 12 }   #   $request_is_active,
-sub RQ_ID       () { 13 }   #   $request_id,
-                            # ];
+                                 # $request = [
+use constant RQ_SESSION  => 0;   #   $request_session,
+use constant RQ_EVENT    => 1;   #   $request_event,
+use constant RQ_SCHEME   => 2;   #   $request_scheme,
+use constant RQ_ADDRESS  => 3;   #   $request_address,
+use constant RQ_IP       => 4;   #   $request_ip,
+use constant RQ_PORT     => 5;   #   $request_port,
+use constant RQ_CONN_KEY => 6;   #   $request_connection_key,
+use constant RQ_CONTEXT  => 7;   #   $request_context,
+use constant RQ_TIMEOUT  => 8;   #   $request_timeout,
+use constant RQ_START    => 9;   #   $request_start_time,
+use constant RQ_TIMER_ID => 10;  #   $request_timer_id,
+use constant RQ_WHEEL_ID => 11;  #   $request_wheel_id,
+use constant RQ_ACTIVE   => 12;  #   $request_is_active,
+use constant RQ_ID       => 13;  #   $request_id,
+use constant RQ_ADDR_FAM => 14;  #   $request_address_family,
+                                 # ];
 
 # Create a connection manager.
 
@@ -119,7 +120,7 @@ sub new {
   my $keep_alive   = delete($args{keep_alive})   || 15;
   my $timeout      = delete($args{timeout})      || 120;
   my $resolver     = delete($args{resolver});
-  my $bind_address = delete($args{bind_address}) || "0.0.0.0";
+  my $bind_address = delete($args{bind_address});
 
   my @unknown = sort keys %args;
   if (@unknown) {
@@ -143,11 +144,7 @@ sub new {
     $bind_address,      # SF_BIND_ADDR
   ], $class;
 
-  unless (defined $resolver) {
-    $resolver = POE::Component::Client::DNS->spawn (
-      Alias => "$self\_resolver",
-    );
-  }
+  $resolver //= POE::Component::Resolver->new();
   $self->[SF_RESOLVER] = $resolver;
 
   POE::Session->create(
@@ -278,14 +275,18 @@ sub _ka_wake_up {
     # Move the wheel and its request into SF_WHEELS.
     DEBUG and warn "WAKEUP: creating wheel for $req_key";
 
-    # TODO - Set the SocketDomain to AF_INET6 if $addr =~ /:/?
     my $addr = ($request->[RQ_IP] or $request->[RQ_ADDRESS]);
     my $wheel = POE::Wheel::SocketFactory->new(
-      BindAddress   => $self->[SF_BIND_ADDR],
+      (
+        defined($self->[SF_BIND_ADDR])
+        ? (BindAddress => $self->[SF_BIND_ADDR])
+        : ()
+      ),
       RemoteAddress => $addr,
       RemotePort    => $request->[RQ_PORT],
       SuccessEvent  => "ka_conn_success",
       FailureEvent  => "ka_conn_failure",
+      SocketDomain  => $request->[RQ_ADDR_FAM],
     );
 
     $self->[SF_WHEELS]{$wheel->ID} = [
@@ -396,6 +397,7 @@ sub allocate {
     undef,      # RQ_WHEEL_ID
     1,          # RQ_ACTIVE
     _allocate_req_id(), # RQ_ID
+    undef,      # RQ_ADDR_FAM
   ];
 
   $self->[SF_REQ_INDEX]{$request->[RQ_ID]} = $request;
@@ -583,7 +585,13 @@ sub _ka_conn_success {
     unless ($ssl_available) {
       die "There is no SSL support, please install POE::Component::SSLify";
     }
-    $socket = POE::Component::SSLify::Client_SSLify ($socket);
+    eval {
+      $socket = POE::Component::SSLify::Client_SSLify($socket);
+    };
+		if ($@) {
+			_respond_with_error($request, "sslify", undef, "$@");
+			return;
+		}
   }
 
   $used->[USED_SOCKET] = $socket;
@@ -812,8 +820,7 @@ sub _ka_shutdown {
 
   # Shut down the resolver.
   DEBUG and warn "SHT: Shutting down resolver";
-  $self->[SF_RESOLVER]->shutdown();
-  delete $self->[SF_RESOLVER];
+  $self->[SF_RESOLVER] = undef;
 
   # Finish keepalive's shutdown.
   $kernel->alias_remove("$self");
@@ -898,28 +905,21 @@ sub _ka_resolve_request {
   my $response = $self->[SF_RESOLVER]->resolve(
     event   => 'ka_dns_response',
     host    => $host,
-    context => 1, # required but unused
+    service => $request->[RQ_SCHEME],
   );
-
-  if ($response) {
-    DEBUG_DNS and warn "DNS: immediate resolution for $host";
-    $kernel->yield(ka_dns_response => $response);
-    return;
-  }
 
   DEBUG_DNS and warn "DNS: looking up $host in the background.\n";
 }
 
 sub _ka_dns_response {
-  my ($self, $kernel, $heap, $response) = @_[OBJECT, KERNEL, HEAP, ARG0];
+  my ($self, $kernel, $heap, $response_error, $addresses, $request) = @_[
+    OBJECT, KERNEL, HEAP, ARG0..ARG2
+  ];
 
   # We've shut down.  Nothing to do here.
   return if $self->[SF_SHUTDOWN];
 
-  my $request_address = $response->{'host'};
-  my $response_object = $response->{'response'};
-  my $response_error  = $response->{'error'};
-
+  my $request_address = $request->{host};
   my $requests = delete $heap->{resolve}->{$request_address};
 
   DEBUG_DNS and warn "DNS: got response for request address $request_address";
@@ -941,10 +941,10 @@ sub _ka_dns_response {
     die "DNS: Unexpectedly undefined requests for $request_address";
   }
 
-  # No response.  This is an error.  Cancel all requests for the
-  # address.  Tell everybody that their requests timed out.
-  unless (defined $response_object) {
-    DEBUG_DNS and warn "DNS: undefined response = error";
+  # This is an error.  Cancel all requests for the address.
+  # Tell everybody that their requests failed.
+  if ($response_error) {
+    DEBUG_DNS and warn "DNS: resolver error = $response_error";
     foreach my $request (@$requests) {
       _respond_with_error($request, "resolve", undef, $response_error),
     }
@@ -954,16 +954,16 @@ sub _ka_dns_response {
   DEBUG_DNS and warn "DNS: got a response";
 
   # A response!
-  foreach my $answer ($response_object->answer()) {
-    # don't need this because we ask for only A answers anyway
-    #next unless $answer->type eq "A";
+  foreach my $address_rec (@$addresses) {
+    my $numeric = $self->[SF_RESOLVER]->unpack_addr($address_rec);
 
-    DEBUG_DNS and warn "DNS: $request_address resolves to ", $answer->rdatastr;
+    DEBUG_DNS and warn "DNS: $request_address resolves to $numeric";
 
     foreach my $request (@$requests) {
       # Don't bother continuing inactive requests.
       next unless $request->[RQ_ACTIVE];
-      $request->[RQ_IP] = $answer->rdatastr;
+      $request->[RQ_IP] = $numeric;
+      $request->[RQ_ADDR_FAM] = $address_rec->{family};
       $kernel->yield(ka_add_to_queue => $request);
     }
 
@@ -1101,6 +1101,10 @@ __END__
 
 POE::Component::Client::Keepalive - manage connections, with keep-alive
 
+=head1 VERSION
+
+version 0.263_161
+
 =head1 SYNOPSIS
 
   use warnings;
@@ -1225,10 +1229,11 @@ implementation details.
 
 =item allocate
 
-Allocate a new connection.  Allocate() will return immediately.  The
-allocated connection, however, will be posted back to the requesting
-session.  This happens even if the connection was found in the
-component's keep-alive cache.
+Allocate a new connection.  Allocate() will return a request ID
+immediately.  The allocated connection, however, will be posted back
+to the requesting session.  This happens even if the connection was
+found in the component's keep-alive cache.  It's a bit slower, but the
+use cases are cleaner that way.
 
 Allocate() requires five parameters and has an optional sixth.
 
@@ -1330,6 +1335,11 @@ objects call free() for you when they are destroyed.
 Not calling free() will cause a program to leak connections.  This is
 also not generally a problem, since free() is called automatically
 whenever connection objects are destroyed.
+
+=item deallocate
+
+Cancel a connection that has not yet been established.  Requires one
+parameter, the request ID returned by allocate().
 
 =item shutdown
 

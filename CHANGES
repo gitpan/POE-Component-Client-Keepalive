@@ -1,3 +1,68 @@
+==============================
+9999-99-99 99:99:99 +0000 HEAD
+==============================
+
+  commit 8671f28c685c5a90d6bf0c2a59169aa4eec0138c
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Thu Jan 27 13:24:53 2011 -0500
+  
+    Remove dependency on Socket6.
+
+  commit 937fe477d66e566ed04f34ba853dd47a93cafb3d
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Wed Jan 26 16:47:08 2011 -0500
+  
+    Fail the connection (rather than die) if SSLify fails. Resolves
+    rt.cpan.org ticket 65069.
+
+  commit 67d5472667885a25e5a93f46d18d292f6d5ba9ae
+  Author: Florian Ragwitz <rafl@debian.org>
+  Date:   Wed Jan 26 16:35:51 2011 -0500
+  
+    Choose random high ports for test servers. Resolves rt.cpan.org
+    ticket 56901, however it's not a perfect solution.
+
+  commit d2577dd0f2849d66a44c278c66def455a90a71cb
+  Author: Isabelle Cabrera <i.arbeca@gmail.com>
+  Date:   Wed Jan 26 16:27:37 2011 -0500
+  
+    Avoid an undefined value error during cleanup-time destruction.
+    Resolves rt.cpan.org ticket 63948.
+
+  commit e9b869bcb46f77a696a092edd546a0316e27e742
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Wed Jan 26 16:11:46 2011 -0500
+  
+    Add MANIFEST.SKIP for great justice.
+
+  commit 36a52d61108682912a269003a2d819e560d3fac8
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Wed Jan 26 15:52:24 2011 -0500
+  
+    Put deallocate() back, and document it.. POE::Component::Client::HTTP
+    was using it.
+
+  commit 99233cf1dd2af7113b96547d067b66fdcfee3198
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Wed Jan 26 15:16:55 2011 -0500
+  
+    Migrate to Dist::Zilla.
+
+  commit d2e7a82fa8a25b48b853a1e3002a2d3615a68f70
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Wed Jan 26 02:39:18 2011 -0500
+  
+    Don't bind on 0.0.0.0 by default. In fact, try not binding to
+    anything by default.
+
+  commit 4d92c466471b0b3c8ab5d15cca36c26338afa9b3
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Wed Jan 26 00:26:07 2011 -0500
+  
+    Pass the resolver's address family to the socket factory. Fix all the
+    tests, which work better with IPv4 than with willy-nilly address
+    families. 
+
 ================================
 2010-06-10 13:39:43 -0400 v0_263
 ================================
@@ -15,113 +80,6 @@
     Fix the case insensitivy of ETIMEDOUT check, per gustavderdrache's
     report in freenode #perl. 
 
-================================
-2009-10-18 03:32:52 -0400 v0_262
-================================
-
-  commit e27dad536be976b5883ed5da70389f86052d83d4
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Oct 18 03:32:52 2009 -0400
-  
-    Bump the version for release.
-
-  commit 43b1a784ed8ca9c0715ed578f328dca96ce828ca
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Oct 18 03:30:12 2009 -0400
-  
-    hippietrail on Freenode #perl reported a test failure that turns out
-    to be a connection refused error rather than ETIMEDOUT. We'll skip
-    the test if the connection is refused outright. Thanks to them for
-    interactively trying some things out. 
-
-================================
-2009-10-14 03:06:23 -0400 v0_261
-================================
-
-  commit 542516fd9fd03e31c92517695588f67c2d72d07c
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Wed Oct 14 03:06:23 2009 -0400
-  
-    Prepare for release.
-
-  commit 8a1b8c59bd71424099241efb75566c63148068c1
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Tue Oct 13 00:53:24 2009 -0400
-  
-    Notify the tester that this may take a long time if their firewall
-    blackholes connections.
-
-  commit 1658afd15631d9ace4f1db98523ef84da3724f29
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Tue Oct 13 00:42:48 2009 -0400
-  
-    Resolve a test bug introduced by POE's new dispatch timing.
-
-    Adam Kennedy reported that t/09_timeout.t was consistently failing
-    under the latest development version of POE. It turned out to be a
-    dodgy test relying on event timing, which was bound to fail sooner or
-    later anyway. This commit removes the reliance on I/O event timing.
-
-  commit 2e16fd0a078c0de6d31a7196cc61215e2332be26
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Oct 12 23:55:27 2009 -0400
-  
-    Add an 00_info.t test to help diagnose platform- and
-    dependency-specific issues.
-
-  commit 74153253f06e11c7e1381581a4a1a1fb991856a8
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Sep 14 11:50:40 2009 -0400
-  
-    Upgrade distribution to git-based workflow. 
-
-================================
-2009-07-28 06:06:04 +0000 v0_260
-================================
-
-  commit 2e720313ceb90bbdcc541cbe23a6809768e8cf1d
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Tue Jul 28 06:06:04 2009 +0000
-  
-    Use latest POE, and prepare for a new release.
-
-  commit 00a3812740c830a8ff05c5cc7a9a0f78782f9f1f
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Jul 27 04:55:14 2009 +0000
-  
-    Added a machine-readable repository directory to the distribution.
-    Documented the bug tracker, repository, and other resource URLs.
-
-  commit 1264faefc037b9ed93018fb4945354c558534fa7
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Jul 27 02:39:01 2009 +0000
-  
-    Set license and repository metadata.
-
-  commit 4397723fee192500980e5fee8c2a84af1a12abf6
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Jul 26 18:04:17 2009 +0000
-  
-    Avoid calling setsockopt() on bad file descriptors. Sometimes a
-    socket is given back to POE::Component::Client::Keepalive, and then
-    it goes bad before it can be reclaimed or discarded.
-
-  commit 62ffc4f55722ee314abef97ac5aea46c9c45a383
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Jul 26 07:09:17 2009 +0000
-  
-    Set the Net::IP dependency, even though POE::Component::Client::DNS
-    should pull it in via Net::DNS.
-
-  commit 7a376c488065fe1874a5e31cf2af3d8fc86c500b
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Jul 26 07:08:00 2009 +0000
-  
-    Resolve rt.cpan.org 41326, reported by J.G.Konrad and entered into
-    the queue by Chris Williams. Dotted quad detection was pretty weak,
-    but now it uses Net::IP::ip_is_ipv4() to detect whether DNS
-    resolution is needed. 
-
-==============
-End of Excerpt
-==============
+===================================
+End of changes in the last 365 days
+===================================
