@@ -2,7 +2,7 @@ NAME
     POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 VERSION
-    version 0.263_161
+    version 0.263_272
 
 SYNOPSIS
       use warnings;

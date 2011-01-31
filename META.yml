@@ -16,7 +16,6 @@ requires:
   Net::IP: 1.25
   POE: 1.294_512
   POE::Component::Resolver: 0.900_161
-  POE::Wheel::SocketFactory: 1.294_512
 resources:
   repository: git://github.com/rcaputo/poe-component-client-keepalive.git
-version: 0.263_161
+version: 0.263_272
