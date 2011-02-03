@@ -21,10 +21,10 @@ my %WriteMakefileArgs = (
   'NAME' => 'POE::Component::Client::Keepalive',
   'PREREQ_PM' => {
     'Net::IP' => '1.25',
-    'POE' => '1.294_512',
-    'POE::Component::Resolver' => '0.900_161'
+    'POE' => '1.299',
+    'POE::Component::Resolver' => '0.910'
   },
-  'VERSION' => '0.263_272',
+  'VERSION' => '0.263_314',
   'test' => {
     'TESTS' => 't/*.t'
   }

@@ -4,7 +4,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 # VERSION
 
-version 0.263_272
+version 0.263_314
 
 # SYNOPSIS
 

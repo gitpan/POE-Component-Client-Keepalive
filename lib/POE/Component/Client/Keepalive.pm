@@ -1103,7 +1103,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 =head1 VERSION
 
-version 0.263_272
+version 0.263_314
 
 =head1 SYNOPSIS
 
