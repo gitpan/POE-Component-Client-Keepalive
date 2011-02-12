@@ -18,4 +18,4 @@ requires:
   POE::Component::Resolver: 0.910
 resources:
   repository: git://github.com/rcaputo/poe-component-client-keepalive.git
-version: 0.263_314
+version: 0.265

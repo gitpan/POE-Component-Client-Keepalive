@@ -102,7 +102,7 @@ __END__
 
 =head1 VERSION
 
-version 0.263_314
+version 0.265
 POE::Component::Connection::Keepalive - a wheel wrapper around a
 kept-alive socket
 
