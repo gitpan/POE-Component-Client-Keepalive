@@ -15,7 +15,7 @@ name: POE-Component-Client-Keepalive
 requires:
   Net::IP: 1.25
   POE: 1.299
-  POE::Component::Resolver: 0.910
+  POE::Component::Resolver: 0.911
 resources:
   repository: git://github.com/rcaputo/poe-component-client-keepalive.git
-version: 0.265
+version: 0.266

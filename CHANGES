@@ -1,4 +1,33 @@
 ================================
+2011-02-20 22:59:20 -0500 v0_266
+================================
+
+  commit c1bd850688769713235c2fbd5f1fc8955888b4c3
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Feb 20 22:59:20 2011 -0500
+  
+    Remove VERSION assignment so dzil can do it for us.
+
+  commit cf949a62689bab4ac60086fbcf5335b085075e73
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Feb 20 22:36:47 2011 -0500
+  
+    Roll back a 5.10-ism. Resolves rt.cpan.org #65837 reported by Richard
+    Harris (CPAN ID RJH).
+
+  commit ed407606caa492769140a07feda758871ca38d8d
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sun Feb 20 22:36:29 2011 -0500
+  
+    This project has migrated from .releaserc to dist.ini.
+
+  commit 25ffdf7a60be1f4294c6c5d9534346ea30b31cad
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Mon Feb 14 19:49:14 2011 -0500
+  
+    Add for_scheme, for_addr and for_port parameters to help proxies. 
+
+================================
 2011-01-27 13:24:53 -0500 v0_265
 ================================
 

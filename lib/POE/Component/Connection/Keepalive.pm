@@ -3,12 +3,12 @@
 # when it's destroyed.
 
 package POE::Component::Connection::Keepalive;
+BEGIN {
+  $POE::Component::Connection::Keepalive::VERSION = '0.266';
+}
 
 use warnings;
 use strict;
-
-use vars qw($VERSION);
-$VERSION = "0.262";
 
 use Carp qw(croak);
 use POE::Wheel::ReadWrite;
@@ -102,7 +102,7 @@ __END__
 
 =head1 VERSION
 
-version 0.265
+version 0.266
 POE::Component::Connection::Keepalive - a wheel wrapper around a
 kept-alive socket
 
