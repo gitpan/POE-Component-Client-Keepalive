@@ -1,4 +1,29 @@
 ================================
+2011-05-03 22:41:56 -0400 v0_267
+================================
+
+  commit c846f073d727aca73c2a1048a88568278b5cca1b
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Tue May 3 22:41:56 2011 -0400
+  
+    Prepare for next release.
+
+  commit 381bcea14b4e8ef3dadb9d9a40dc0aee6da1921d
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Tue May 3 22:41:16 2011 -0400
+  
+    Explicitly shutdown the resolver when this component is shut down.
+
+  commit 2cc5cebfc14c4c404549442eb5f2591cc9323db1
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Thu Apr 21 11:29:05 2011 -0400
+  
+    Use only a single POE::Component::Resolver by default. Prevents a lot
+    of POE::Component::Client::HTTP useragents from consuming all file
+    descriptors. Reported by Karen_m and BinGOs on Freenode #perl, and
+    fixed with the help of Karen's test case. 
+
+================================
 2011-02-20 22:59:20 -0500 v0_266
 ================================
 

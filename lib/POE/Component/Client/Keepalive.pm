@@ -1,6 +1,6 @@
 package POE::Component::Client::Keepalive;
 BEGIN {
-  $POE::Component::Client::Keepalive::VERSION = '0.266';
+  $POE::Component::Client::Keepalive::VERSION = '0.267';
 }
 
 use warnings;
@@ -42,6 +42,8 @@ sub _free_req_id {
   my $id = shift;
   delete $active_req_ids{$id};
 }
+
+my $default_resolver;
 
 # The connection manager uses a number of data structures, most of
 # them arrays.  These constants define offsets into those arrays, and
@@ -147,8 +149,9 @@ sub new {
     $bind_address,      # SF_BIND_ADDR
   ], $class;
 
-  $resolver ||= POE::Component::Resolver->new();
-  $self->[SF_RESOLVER] = $resolver;
+  $self->[SF_RESOLVER] = (
+    $resolver || ($default_resolver ||= POE::Component::Resolver->new())
+  );
 
   POE::Session->create(
     object_states => [
@@ -366,8 +369,8 @@ sub allocate {
   }
 
   my $conn_key = (
-		"$scheme $address $port for $for_scheme $for_address $for_port"
-	);
+    "$scheme $address $port for $for_scheme $for_address $for_port"
+  );
 
   # If we have a connection pool for the scheme/address/port triple,
   # then we can maybe post an available connection right away.
@@ -832,6 +835,7 @@ sub _ka_shutdown {
 
   # Shut down the resolver.
   DEBUG and warn "SHT: Shutting down resolver";
+	$self->[SF_RESOLVER]->shutdown();
   $self->[SF_RESOLVER] = undef;
 
   # Finish keepalive's shutdown.
@@ -1118,7 +1122,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 =head1 VERSION
 
-version 0.266
+version 0.267
 
 =head1 SYNOPSIS
 
