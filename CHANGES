@@ -1,4 +1,31 @@
 ================================
+2011-07-30 04:54:36 -0400 v0_268
+================================
+
+  commit c53106ea6c8aa079eb251a4dc9707d23492f7e1e
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sat Jul 30 04:54:36 2011 -0400
+  
+    Bump revision and dependency for release.
+
+  commit b791c0bdc8cd29f3969b5cffcebfa2f5ab057eb5
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date:   Sat Jul 30 04:30:12 2011 -0400
+  
+    Multi-line NAME sections corrupt the VERSION/NAME section ordering.
+    I'm not sure why or which plugin is doing it, but making the NAME
+    test one line is a serviceable workaround.
+
+    Resolves rt.cpan.org ticket 69235, reported by Debian developer
+    Gregor Hermann.
+
+  commit 65eb566f05d5f3fadebd20d41c4fc928bc596e2c
+  Author: Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
+  Date:   Mon Jul 25 22:54:59 2011 +0100
+  
+    Address [rt.cpan.org #69519] "resolve() on shutdown resolver" errors 
+
+================================
 2011-05-03 22:41:56 -0400 v0_267
 ================================
 
@@ -116,23 +143,6 @@
     Pass the resolver's address family to the socket factory. Fix all the
     tests, which work better with IPv4 than with willy-nilly address
     families. 
-
-================================
-2010-06-10 13:39:43 -0400 v0_263
-================================
-
-  commit e0a13446e43c567de6287276229c1c10cd27b395
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Thu Jun 10 13:39:43 2010 -0400
-  
-    Bump up the version for release.
-
-  commit 2d844f15579e9cc6f47309449d228a3eeb250316
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Thu Jun 10 13:37:27 2010 -0400
-  
-    Fix the case insensitivy of ETIMEDOUT check, per gustavderdrache's
-    report in freenode #perl. 
 
 ===================================
 End of changes in the last 365 days

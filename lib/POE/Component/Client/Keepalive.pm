@@ -1,6 +1,6 @@
 package POE::Component::Client::Keepalive;
 BEGIN {
-  $POE::Component::Client::Keepalive::VERSION = '0.267';
+  $POE::Component::Client::Keepalive::VERSION = '0.268';
 }
 
 use warnings;
@@ -44,6 +44,7 @@ sub _free_req_id {
 }
 
 my $default_resolver;
+my $instances = 0;
 
 # The connection manager uses a number of data structures, most of
 # them arrays.  These constants define offsets into those arrays, and
@@ -149,8 +150,11 @@ sub new {
     $bind_address,      # SF_BIND_ADDR
   ], $class;
 
+  $default_resolver = $resolver
+    if $resolver && eval { $resolver->isa('POE::Component::Resolver') };
+
   $self->[SF_RESOLVER] = (
-    $resolver || ($default_resolver ||= POE::Component::Resolver->new())
+    $default_resolver ||= POE::Component::Resolver->new()
   );
 
   POE::Session->create(
@@ -185,6 +189,7 @@ sub new {
 
 sub _ka_initialize {
   my ($object, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
+  $instances++;
   $heap->{resolve} = { };
   $kernel->alias_set("$object");
 }
@@ -806,6 +811,8 @@ sub _ka_shutdown {
 
   return if $self->[SF_SHUTDOWN];
 
+  $instances--;
+
   # Clean out the request queue.
   foreach my $request (@{$self->[SF_QUEUE]}) {
     $self->_shutdown_request($kernel, $request);
@@ -835,8 +842,15 @@ sub _ka_shutdown {
 
   # Shut down the resolver.
   DEBUG and warn "SHT: Shutting down resolver";
-	$self->[SF_RESOLVER]->shutdown();
+  if ( $self->[SF_RESOLVER] != $default_resolver ) {
+	  $self->[SF_RESOLVER]->shutdown();
+  }
   $self->[SF_RESOLVER] = undef;
+
+  if ( $default_resolver and !$instances ) {
+    $default_resolver->shutdown();
+    $default_resolver = undef;
+  }
 
   # Finish keepalive's shutdown.
   $kernel->alias_remove("$self");
@@ -1122,7 +1136,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 =head1 VERSION
 
-version 0.267
+version 0.268
 
 =head1 SYNOPSIS
 

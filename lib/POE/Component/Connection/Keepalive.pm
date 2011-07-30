@@ -4,7 +4,7 @@
 
 package POE::Component::Connection::Keepalive;
 BEGIN {
-  $POE::Component::Connection::Keepalive::VERSION = '0.267';
+  $POE::Component::Connection::Keepalive::VERSION = '0.268';
 }
 
 use warnings;
@@ -99,12 +99,11 @@ __END__
 
 =head1 NAME
 
+POE::Component::Connection::Keepalive - a wheel wrapper around a kept-alive socket
 
 =head1 VERSION
 
-version 0.267
-POE::Component::Connection::Keepalive - a wheel wrapper around a
-kept-alive socket
+version 0.268
 
 =head1 SYNOPSIS
 

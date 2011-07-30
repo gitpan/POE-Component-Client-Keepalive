@@ -4,7 +4,7 @@ use warnings;
 
 
 
-use ExtUtils::MakeMaker 6.31;
+use ExtUtils::MakeMaker 6.30;
 
 
 
@@ -13,7 +13,7 @@ my %WriteMakefileArgs = (
   'AUTHOR' => 'Rocco Caputo <rcaputo@cpan.org>',
   'BUILD_REQUIRES' => {},
   'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31'
+    'ExtUtils::MakeMaker' => '6.30'
   },
   'DISTNAME' => 'POE-Component-Client-Keepalive',
   'EXE_FILES' => [],
@@ -22,9 +22,9 @@ my %WriteMakefileArgs = (
   'PREREQ_PM' => {
     'Net::IP' => '1.25',
     'POE' => '1.311',
-    'POE::Component::Resolver' => '0.912'
+    'POE::Component::Resolver' => '0.913'
   },
-  'VERSION' => '0.267',
+  'VERSION' => '0.268',
   'test' => {
     'TESTS' => 't/*.t'
   }

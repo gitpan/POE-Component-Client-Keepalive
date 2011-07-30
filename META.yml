@@ -4,9 +4,9 @@ author:
   - 'Rocco Caputo <rcaputo@cpan.org>'
 build_requires: {}
 configure_requires:
-  ExtUtils::MakeMaker: 6.31
+  ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.102400'
+generated_by: 'Dist::Zilla version 4.200012, CPAN::Meta::Converter version 2.102400'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -15,7 +15,7 @@ name: POE-Component-Client-Keepalive
 requires:
   Net::IP: 1.25
   POE: 1.311
-  POE::Component::Resolver: 0.912
+  POE::Component::Resolver: 0.913
 resources:
   repository: git://github.com/rcaputo/poe-component-client-keepalive.git
-version: 0.267
+version: 0.268
