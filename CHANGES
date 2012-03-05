@@ -1,149 +1,107 @@
-================================
-2011-07-30 04:54:36 -0400 v0_268
-================================
+==================================================
+Changes from 2011-03-06 00:00:00 +0000 to present.
+==================================================
 
-  commit c53106ea6c8aa079eb251a4dc9707d23492f7e1e
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sat Jul 30 04:54:36 2011 -0400
-  
-    Bump revision and dependency for release.
+------------------------------------------
+version 0.269 at 2012-03-05 03:02:39 +0000
+------------------------------------------
 
-  commit b791c0bdc8cd29f3969b5cffcebfa2f5ab057eb5
+  Change: 38b4299562eb33393d00a17bbd902c95af881d45
   Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sat Jul 30 04:30:12 2011 -0400
-  
+  Date : 2012-03-04 22:00:25 +0000
+
+    Need the absolutely latest POE::Component::Resolver as of this
+    writing. 
+
+  Change: 6ad518a932c733f2eeac97837f4e313abf0c993c
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2012-03-04 21:59:35 +0000
+
+    [rt.cpan.org 73353] Use ports instead of schemes when resolving
+    hosts.
+
+    Solaris (and probably other systems) don't have an /etc/services
+    entry for http, so relying on the lookup fails here. Luckily the user
+    also provides a port (which may or may not be symbolic). I'll use
+    that for now and see where it gets me.
+
+    Thank you, Michael Lackhoff, for reporting this bug. 
+
+  Change: 39c1651caf89ed55f8165ac55bff68869011207b
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2012-03-04 21:38:36 +0000
+
+    Add auto-tagging and auto-versioning to dist.ini. 
+
+  Change: e8965b65a23ee3fa969cc9f2ee4ee8e1ea6d3e7f
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2011-12-16 00:12:41 +0000
+
+    Merge pull request #2 from bingos/master
+
+    Use Net::IP::Minimal instead of Net::IP 
+
+  Change: bf7abd1cda69cd022e37c46ececcacdb1a6d2048
+  Author: Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
+  Date : 2011-11-17 21:39:14 +0000
+
+    Use Net::IP::Minimal instead of Net::IP
+
+    Net::IP consumes a fair chunk of memory, Net::DNS stopped using it
+    see https://rt.cpan.org/Public/Bug/Display.html?id=24525 
+
+------------------------------------------
+version 0_268 at 2011-07-30 08:54:36 +0000
+------------------------------------------
+
+  Change: c53106ea6c8aa079eb251a4dc9707d23492f7e1e
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2011-07-30 04:54:36 +0000
+
+    Bump revision and dependency for release. 
+
+  Change: b791c0bdc8cd29f3969b5cffcebfa2f5ab057eb5
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2011-07-30 04:30:12 +0000
+
     Multi-line NAME sections corrupt the VERSION/NAME section ordering.
     I'm not sure why or which plugin is doing it, but making the NAME
     test one line is a serviceable workaround.
 
     Resolves rt.cpan.org ticket 69235, reported by Debian developer
-    Gregor Hermann.
+    Gregor Hermann. 
 
-  commit 65eb566f05d5f3fadebd20d41c4fc928bc596e2c
+  Change: 65eb566f05d5f3fadebd20d41c4fc928bc596e2c
   Author: Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
-  Date:   Mon Jul 25 22:54:59 2011 +0100
-  
+  Date : 2011-07-25 22:54:59 +0000
+
     Address [rt.cpan.org #69519] "resolve() on shutdown resolver" errors 
 
-================================
-2011-05-03 22:41:56 -0400 v0_267
-================================
+------------------------------------------
+version 0_267 at 2011-05-04 02:41:56 +0000
+------------------------------------------
 
-  commit c846f073d727aca73c2a1048a88568278b5cca1b
+  Change: c846f073d727aca73c2a1048a88568278b5cca1b
   Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Tue May 3 22:41:56 2011 -0400
-  
-    Prepare for next release.
+  Date : 2011-05-03 22:41:56 +0000
 
-  commit 381bcea14b4e8ef3dadb9d9a40dc0aee6da1921d
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Tue May 3 22:41:16 2011 -0400
-  
-    Explicitly shutdown the resolver when this component is shut down.
+    Prepare for next release. 
 
-  commit 2cc5cebfc14c4c404549442eb5f2591cc9323db1
+  Change: 381bcea14b4e8ef3dadb9d9a40dc0aee6da1921d
   Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Thu Apr 21 11:29:05 2011 -0400
-  
+  Date : 2011-05-03 22:41:16 +0000
+
+    Explicitly shutdown the resolver when this component is shut down. 
+
+  Change: 2cc5cebfc14c4c404549442eb5f2591cc9323db1
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2011-04-21 11:29:05 +0000
+
     Use only a single POE::Component::Resolver by default. Prevents a lot
     of POE::Component::Client::HTTP useragents from consuming all file
     descriptors. Reported by Karen_m and BinGOs on Freenode #perl, and
     fixed with the help of Karen's test case. 
 
-================================
-2011-02-20 22:59:20 -0500 v0_266
-================================
-
-  commit c1bd850688769713235c2fbd5f1fc8955888b4c3
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Feb 20 22:59:20 2011 -0500
-  
-    Remove VERSION assignment so dzil can do it for us.
-
-  commit cf949a62689bab4ac60086fbcf5335b085075e73
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Feb 20 22:36:47 2011 -0500
-  
-    Roll back a 5.10-ism. Resolves rt.cpan.org #65837 reported by Richard
-    Harris (CPAN ID RJH).
-
-  commit ed407606caa492769140a07feda758871ca38d8d
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Sun Feb 20 22:36:29 2011 -0500
-  
-    This project has migrated from .releaserc to dist.ini.
-
-  commit 25ffdf7a60be1f4294c6c5d9534346ea30b31cad
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Mon Feb 14 19:49:14 2011 -0500
-  
-    Add for_scheme, for_addr and for_port parameters to help proxies. 
-
-================================
-2011-01-27 13:24:53 -0500 v0_265
-================================
-
-  commit 8671f28c685c5a90d6bf0c2a59169aa4eec0138c
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Thu Jan 27 13:24:53 2011 -0500
-  
-    Remove dependency on Socket6.
-
-  commit 937fe477d66e566ed04f34ba853dd47a93cafb3d
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Wed Jan 26 16:47:08 2011 -0500
-  
-    Fail the connection (rather than die) if SSLify fails. Resolves
-    rt.cpan.org ticket 65069.
-
-  commit 67d5472667885a25e5a93f46d18d292f6d5ba9ae
-  Author: Florian Ragwitz <rafl@debian.org>
-  Date:   Wed Jan 26 16:35:51 2011 -0500
-  
-    Choose random high ports for test servers. Resolves rt.cpan.org
-    ticket 56901, however it's not a perfect solution.
-
-  commit d2577dd0f2849d66a44c278c66def455a90a71cb
-  Author: Isabelle Cabrera <i.arbeca@gmail.com>
-  Date:   Wed Jan 26 16:27:37 2011 -0500
-  
-    Avoid an undefined value error during cleanup-time destruction.
-    Resolves rt.cpan.org ticket 63948.
-
-  commit e9b869bcb46f77a696a092edd546a0316e27e742
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Wed Jan 26 16:11:46 2011 -0500
-  
-    Add MANIFEST.SKIP for great justice.
-
-  commit 36a52d61108682912a269003a2d819e560d3fac8
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Wed Jan 26 15:52:24 2011 -0500
-  
-    Put deallocate() back, and document it.. POE::Component::Client::HTTP
-    was using it.
-
-  commit 99233cf1dd2af7113b96547d067b66fdcfee3198
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Wed Jan 26 15:16:55 2011 -0500
-  
-    Migrate to Dist::Zilla.
-
-  commit d2e7a82fa8a25b48b853a1e3002a2d3615a68f70
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Wed Jan 26 02:39:18 2011 -0500
-  
-    Don't bind on 0.0.0.0 by default. In fact, try not binding to
-    anything by default.
-
-  commit 4d92c466471b0b3c8ab5d15cca36c26338afa9b3
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date:   Wed Jan 26 00:26:07 2011 -0500
-  
-    Pass the resolver's address family to the socket factory. Fix all the
-    tests, which work better with IPv4 than with willy-nilly address
-    families. 
-
-===================================
-End of changes in the last 365 days
-===================================
+=================================================
+Plus 28 releases after 2011-03-06 00:00:00 +0000.
+=================================================

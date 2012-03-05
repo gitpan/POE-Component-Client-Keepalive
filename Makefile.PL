@@ -9,24 +9,24 @@ use ExtUtils::MakeMaker 6.30;
 
 
 my %WriteMakefileArgs = (
-  'ABSTRACT' => 'manage connections, with keep-alive',
-  'AUTHOR' => 'Rocco Caputo <rcaputo@cpan.org>',
-  'BUILD_REQUIRES' => {},
-  'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.30'
+  "ABSTRACT" => "manage connections, with keep-alive",
+  "AUTHOR" => "Rocco Caputo <rcaputo\@cpan.org>",
+  "BUILD_REQUIRES" => {},
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
   },
-  'DISTNAME' => 'POE-Component-Client-Keepalive',
-  'EXE_FILES' => [],
-  'LICENSE' => 'perl',
-  'NAME' => 'POE::Component::Client::Keepalive',
-  'PREREQ_PM' => {
-    'Net::IP' => '1.25',
-    'POE' => '1.311',
-    'POE::Component::Resolver' => '0.913'
+  "DISTNAME" => "POE-Component-Client-Keepalive",
+  "EXE_FILES" => [],
+  "LICENSE" => "perl",
+  "NAME" => "POE::Component::Client::Keepalive",
+  "PREREQ_PM" => {
+    "Net::IP::Minimal" => "0.02",
+    "POE" => "1.311",
+    "POE::Component::Resolver" => "0.916"
   },
-  'VERSION' => '0.268',
-  'test' => {
-    'TESTS' => 't/*.t'
+  "VERSION" => "0.269",
+  "test" => {
+    "TESTS" => "t/*.t"
   }
 );
 

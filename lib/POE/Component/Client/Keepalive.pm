@@ -1,6 +1,6 @@
 package POE::Component::Client::Keepalive;
-BEGIN {
-  $POE::Component::Client::Keepalive::VERSION = '0.268';
+{
+  $POE::Component::Client::Keepalive::VERSION = '0.269';
 }
 
 use warnings;
@@ -14,7 +14,7 @@ use POE;
 use POE::Wheel::SocketFactory;
 use POE::Component::Connection::Keepalive;
 use POE::Component::Resolver;
-use Net::IP qw(ip_is_ipv4);
+use Net::IP::Minimal qw(ip_is_ipv4);
 
 my $ssl_available;
 eval {
@@ -935,7 +935,7 @@ sub _ka_resolve_request {
   my $response = $self->[SF_RESOLVER]->resolve(
     event   => 'ka_dns_response',
     host    => $host,
-    service => $request->[RQ_SCHEME],
+    service => $request->[RQ_PORT],
   );
 
   DEBUG_DNS and warn "DNS: looking up $host in the background.\n";
@@ -1136,7 +1136,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 =head1 VERSION
 
-version 0.268
+version 0.269
 
 =head1 SYNOPSIS
 

@@ -3,8 +3,8 @@
 # when it's destroyed.
 
 package POE::Component::Connection::Keepalive;
-BEGIN {
-  $POE::Component::Connection::Keepalive::VERSION = '0.268';
+{
+  $POE::Component::Connection::Keepalive::VERSION = '0.269';
 }
 
 use warnings;
@@ -103,7 +103,7 @@ POE::Component::Connection::Keepalive - a wheel wrapper around a kept-alive sock
 
 =head1 VERSION
 
-version 0.268
+version 0.269
 
 =head1 SYNOPSIS
 
