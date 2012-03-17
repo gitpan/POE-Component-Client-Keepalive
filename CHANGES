@@ -1,9 +1,22 @@
 ==================================================
-Changes from 2011-03-06 00:00:00 +0000 to present.
+Changes from 2011-03-18 00:00:00 +0000 to present.
 ==================================================
 
 ------------------------------------------
-version 0.269 at 2012-03-05 03:02:39 +0000
+version 0.270 at 2012-03-17 00:44:08 +0000
+------------------------------------------
+
+  Change: 8298bbf560abb6f7d3f485e0eb532f17784fab6e
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2012-03-16 20:40:42 +0000
+
+    Apply Markus Jansen's patch to add a TCP protocol resolver hint.
+
+    Markus reports that this resolves rampant errors on solaris systems.
+    I've verified that it doesn't break tests, which is bonus! Thanks! 
+
+------------------------------------------
+version 0.269 at 2012-03-05 03:00:25 +0000
 ------------------------------------------
 
   Change: 38b4299562eb33393d00a17bbd902c95af881d45
@@ -103,5 +116,5 @@ version 0_267 at 2011-05-04 02:41:56 +0000
     fixed with the help of Karen's test case. 
 
 =================================================
-Plus 28 releases after 2011-03-06 00:00:00 +0000.
+Plus 28 releases after 2011-03-18 00:00:00 +0000.
 =================================================

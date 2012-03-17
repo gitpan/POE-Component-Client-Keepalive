@@ -1,7 +1,8 @@
 package POE::Component::Client::Keepalive;
 {
-  $POE::Component::Client::Keepalive::VERSION = '0.269';
+  $POE::Component::Client::Keepalive::VERSION = '0.270';
 }
+# vim: ts=2 sw=2 expandtab
 
 use warnings;
 use strict;
@@ -25,6 +26,10 @@ eval {
 use constant DEBUG => 0;
 use constant DEBUG_DNS => DEBUG || 0;
 use constant DEBUG_DEALLOCATE => DEBUG || 0;
+
+use constant TCP_PROTO => scalar(getprotobyname "tcp") || (
+  die "getprotobyname('tcp') failed: $!"
+);
 
 # Manage connection request IDs.
 
@@ -843,7 +848,7 @@ sub _ka_shutdown {
   # Shut down the resolver.
   DEBUG and warn "SHT: Shutting down resolver";
   if ( $self->[SF_RESOLVER] != $default_resolver ) {
-	  $self->[SF_RESOLVER]->shutdown();
+    $self->[SF_RESOLVER]->shutdown();
   }
   $self->[SF_RESOLVER] = undef;
 
@@ -936,6 +941,7 @@ sub _ka_resolve_request {
     event   => 'ka_dns_response',
     host    => $host,
     service => $request->[RQ_PORT],
+    hints   => { protocol => TCP_PROTO },
   );
 
   DEBUG_DNS and warn "DNS: looking up $host in the background.\n";
@@ -1136,7 +1142,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 =head1 VERSION
 
-version 0.269
+version 0.270
 
 =head1 SYNOPSIS
 

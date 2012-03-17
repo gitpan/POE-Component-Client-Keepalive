@@ -19,4 +19,4 @@ requires:
 resources:
   bugtracker: http://rt.cpan.org/Public/Dist/Display.html?POE-Component-Client-Keepalive
   repository: git://github.com/rcaputo/poe-component-client-keepalive.git
-version: 0.269
+version: 0.270

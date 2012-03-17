@@ -24,7 +24,7 @@ my %WriteMakefileArgs = (
     "POE" => "1.311",
     "POE::Component::Resolver" => "0.916"
   },
-  "VERSION" => "0.269",
+  "VERSION" => "0.270",
   "test" => {
     "TESTS" => "t/*.t"
   }
