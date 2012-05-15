@@ -1,6 +1,6 @@
 package POE::Component::Client::Keepalive;
 {
-  $POE::Component::Client::Keepalive::VERSION = '0.270';
+  $POE::Component::Client::Keepalive::VERSION = '0.271';
 }
 # vim: ts=2 sw=2 expandtab
 
@@ -114,9 +114,10 @@ use constant RQ_WHEEL_ID    => 11;  #   $request_wheel_id,
 use constant RQ_ACTIVE      => 12;  #   $request_is_active,
 use constant RQ_ID          => 13;  #   $request_id,
 use constant RQ_ADDR_FAM    => 14;  #   $request_address_family,
-use constant RQ_FOR_SCHEME  => 15;  #   $request_address_family,
-use constant RQ_FOR_ADDRESS => 16;  #   $request_address_family,
-use constant RQ_FOR_PORT    => 17;  #   $request_address_family,
+use constant RQ_FOR_SCHEME  => 15;  #   $...
+use constant RQ_FOR_ADDRESS => 16;  #   $...
+use constant RQ_FOR_PORT    => 17;  #   $...
+use constant RQ_RESOLVER_ID => 18;  #   $resolver_request_id,
                                     # ];
 
 # Create a connection manager.
@@ -423,6 +424,7 @@ sub allocate {
     $for_scheme,  # RQ_FOR_SCHEME
     $for_address, # RQ_FOR_ADDRESS
     $for_port,    # RQ_FOR_PORT
+    undef,        # RQ_RESOLVER_ID
   ];
 
   $self->[SF_REQ_INDEX]{$request->[RQ_ID]} = $request;
@@ -484,13 +486,6 @@ sub _ka_deallocate {
     return;
   }
 
-  if ($heap->{resolve}->{$request->[RQ_ADDRESS]} eq 'cancelled') {
-    DEBUG_DEALLOCATE and warn(
-      "deallocate cannot cancel dns -- request already cancelled"
-    );
-    return;
-  }
-
   $poe_kernel->call( "$self", ka_cancel_dns_response => $request );
   return;
 }
@@ -500,6 +495,7 @@ sub _ka_cancel_dns_response {
 
   my $address = $request->[RQ_ADDRESS];
   DEBUG_DNS and warn "DNS: canceling request for $address\n";
+
   my $requests = $heap->{resolve}{$address};
 
   # Remove the resolver request for the address of this connection
@@ -517,7 +513,8 @@ sub _ka_cancel_dns_response {
 
   unless (@$requests) {
     DEBUG_DNS and warn "DNS: canceled all requests for $address";
-    $heap->{resolve}{$address} = 'cancelled';
+    $self->[SF_RESOLVER]->cancel( $request->[RQ_RESOLVER_ID] );
+    delete $heap->{resolve}{$address};
   }
 
   # cancel our attempt to connect
@@ -556,8 +553,16 @@ sub _ka_request_timeout {
     goto &_ka_conn_failure;
   }
 
+  my ($errnum, $errstr) = ($!+0, "$!");
+
+  # No wheel yet.  It must have timed out in connect.
+  if ($request->[RQ_RESOLVER_ID]) {
+    $self->[SF_RESOLVER]->cancel( $request->[RQ_RESOLVER_ID] );
+    $request->[RQ_RESOLVER_ID] = undef;
+  }
+
   # But what if there is no wheel?
-  _respond_with_error($request, "connect", $!+0, "$!"),
+  _respond_with_error($request, "connect", $errnum, $errstr),
 }
 
 # Connection failed.  Remove the SF_WHEELS record corresponding to the
@@ -586,6 +591,8 @@ sub _ka_conn_failure {
 
   # Tell the requester about the failure.
   _respond_with_error($request, $func, $errnum, $errstr),
+
+  $self->_ka_wake_up($_[KERNEL]);
 }
 
 # Connection succeeded.  Remove the SF_WHEELS record corresponding to
@@ -606,22 +613,94 @@ sub _ka_conn_success {
   # properly.
   my $used = delete $self->[SF_USED]{$wheel_id};
 
-  if ($request->[RQ_SCHEME] eq 'https') {
-    unless ($ssl_available) {
-      die "There is no SSL support, please install POE::Component::SSLify";
-    }
-    eval {
-      $socket = POE::Component::SSLify::Client_SSLify($socket);
-    };
-    if ($@) {
-      _respond_with_error($request, "sslify", undef, "$@");
-      return;
-    }
+  unless ($request->[RQ_SCHEME] eq 'https') {
+    $self->_store_socket($used, $socket);
+    $self->_send_back_socket($request, $socket);
+    return;
   }
 
-  $used->[USED_SOCKET] = $socket;
+  # HTTPS here.
+  # Really applies to all SSL schemes.
 
+  unless ($ssl_available) {
+    die "There is no SSL support, please install POE::Component::SSLify";
+  }
+
+  eval {
+    $socket = POE::Component::SSLify::Client_SSLify(
+      $socket,
+
+      # TODO - To make non-blocking sslify work, I need to somehow
+      # defer the response until the following callback says it's
+      # fine.  Or if the callback says there's an error, it needs to
+      # be propagated out.
+      #
+      # Problem is, just setting the callback doesn't seem to get the
+      # connection to complete (successfully or otherwise).  There
+      # needs to be something more going on... but what?
+
+#      sub {
+#        my ($socket, $status, $errval) = @_;
+#        $errval = 'undef' unless defined $errval;
+#
+#        warn "socket($socket) status($status) errval($errval)";
+#
+#        # Connected okay.
+#        if ($status == 1) {
+#          $self->_send_back_socket($request, $socket);
+#          $self = $request = undef;
+#          return;
+#        }
+#
+#        # Didn't connect okay, or hasn't so far.
+#        # Report the error.
+#        if ($errval == 1) {
+#
+#          # Get all known errors, but only retain the most recent one.
+#          # I'm not sure this is needed, but the API mentions an error
+#          # queue, which implies that it could contain stale errors.
+#
+#          my $errnum;
+#          while (my $new_errnum = Net::SSLeay::ERR_get_error()) {
+#            $errnum = $new_errnum;
+#          }
+#
+#          my $errstr = Net::SSLeay::ERR_error_string($errnum);
+#          warn "   ssl_error($errnum) string($errstr)";
+#          _respond_with_error($request, "sslify", undef, $errstr);
+#
+#          # TODO - May the circle be broken.
+#          $self = $request = undef;
+#          return;
+#        }
+#      }
+    );
+  };
+
+  if ($@) {
+    _respond_with_error($request, "sslify", undef, "$@");
+    return;
+  }
+
+  # TODO - I think for SSL we just need to _store_socket().  The call
+  # to _send_back_socket() should be inside the SSL callback.
+  #
+  # Also, I think the callback might leak.  $request and $self may
+  # need to be weakened.
+
+  $self->_store_socket($used, $socket);
+  $self->_send_back_socket($request, $socket);
+}
+
+sub _store_socket {
+  my ($self, $used, $socket) = @_;
+  $used->[USED_SOCKET]      = $socket;
   $self->[SF_USED]{$socket} = $used;
+}
+
+sub _send_back_socket {
+  my ($self, $request, $socket) = @_;
+
   DEBUG and warn(
     "CON: posting... to $request->[RQ_SESSION] . $request->[RQ_EVENT]"
   );
@@ -834,15 +913,16 @@ sub _ka_shutdown {
 
   # Stop any pending resolver requests.
   foreach my $host (keys %{$heap->{resolve}}) {
-    if ($heap->{resolve}{$host} eq 'cancelled') {
-      DEBUG and warn "SHT: Skipping shutdown for $host (already cancelled)";
-      next;
-    }
     DEBUG and warn "SHT: Shutting down resolver requests for $host";
+
     foreach my $request (@{$heap->{resolve}{$host}}) {
       $self->_shutdown_request($kernel, $request);
     }
+
+    # Technically not needed since the resolver shutdown should do it.
+    $self->[SF_RESOLVER]->cancel( $heap->{resolve}->[0]->[RQ_RESOLVER_ID] );
   }
+
   $heap->{resolve} = { };
 
   # Shut down the resolver.
@@ -930,6 +1010,11 @@ sub _ka_resolve_request {
   # It's already pending DNS resolution.  Combine this with previous.
   if (exists $heap->{resolve}->{$host}) {
     DEBUG_DNS and warn "DNS: $host is piggybacking on a pending lookup.\n";
+
+    # All requests for the same host share the same resolver ID.
+    # TODO - Although it should probably be keyed on host:port.
+    $request->[RQ_RESOLVER_ID] = $heap->{resolve}->{$host}->[0]->[RQ_RESOLVER_ID];
+
     push @{$heap->{resolve}->{$host}}, $request;
     return;
   }
@@ -937,7 +1022,7 @@ sub _ka_resolve_request {
   # New request.  Start lookup.
   $heap->{resolve}->{$host} = [ $request ];
 
-  my $response = $self->[SF_RESOLVER]->resolve(
+  $request->[RQ_RESOLVER_ID] = $self->[SF_RESOLVER]->resolve(
     event   => 'ka_dns_response',
     host    => $host,
     service => $request->[RQ_PORT],
@@ -1142,7 +1227,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 =head1 VERSION
 
-version 0.270
+version 0.271
 
 =head1 SYNOPSIS
 

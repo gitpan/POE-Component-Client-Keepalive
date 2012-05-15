@@ -1,9 +1,52 @@
 ==================================================
-Changes from 2011-03-18 00:00:00 +0000 to present.
+Changes from 2011-05-16 00:00:00 +0000 to present.
 ==================================================
 
 ------------------------------------------
-version 0.270 at 2012-03-17 00:44:08 +0000
+version 0.271 at 2012-05-15 01:46:56 +0000
+------------------------------------------
+
+  Change: d3a27f5934b7a8162b73589820c11ef34f2a272a
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2012-05-14 21:46:18 +0000
+
+    Rely upon latest POE::Component::Resolver. 
+
+  Change: 4280200388131e6addec30ab44b5898eadaf9951
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2012-05-14 21:40:07 +0000
+
+    [rt.cpan.org 76776] Fix an edge case where queued requests don't
+    start.
+
+    Sergei Kozunov came through with another great ticket. If two
+    requests for the same host arrive, and the first one fails, the
+    second one will time out in the queue. But only if no other requests
+    are already pending. This change wakes up the queue when a connection
+    fails, causing the subsequent request to be processed. 
+
+  Change: 52d351f864f722849658a21fa8a54ae78cbea967
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2012-05-14 02:21:00 +0000
+
+    [rt.cpan.org 76540] Add stubs for non-blocking SSL.
+
+    POE::Component::SSLify is non-blocking now. Add (and comment out)
+    alpha-quality support for this feature. It needs work, and I hope
+    someone who knows it better can help. 
+
+  Change: 3ce660394f2ce76d217b6699551db4a7c541149c
+  Author: Rocco Caputo <rcaputo@cpan.org>
+  Date : 2012-05-13 04:43:58 +0000
+
+    [rt.cpan.org 76987] Cancel timed-out PoCo::Resolver requests.
+
+    Sergei Kozunov pointed out that POE::Component::Resolver requests
+    aren't canceled when POE::Component::Client::HTTP requests time out
+    during DNS resolution. Cancel those requests! 
+
+------------------------------------------
+version 0.270 at 2012-03-17 00:40:42 +0000
 ------------------------------------------
 
   Change: 8298bbf560abb6f7d3f485e0eb532f17784fab6e
@@ -90,31 +133,6 @@ version 0_268 at 2011-07-30 08:54:36 +0000
 
     Address [rt.cpan.org #69519] "resolve() on shutdown resolver" errors 
 
-------------------------------------------
-version 0_267 at 2011-05-04 02:41:56 +0000
-------------------------------------------
-
-  Change: c846f073d727aca73c2a1048a88568278b5cca1b
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date : 2011-05-03 22:41:56 +0000
-
-    Prepare for next release. 
-
-  Change: 381bcea14b4e8ef3dadb9d9a40dc0aee6da1921d
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date : 2011-05-03 22:41:16 +0000
-
-    Explicitly shutdown the resolver when this component is shut down. 
-
-  Change: 2cc5cebfc14c4c404549442eb5f2591cc9323db1
-  Author: Rocco Caputo <rcaputo@cpan.org>
-  Date : 2011-04-21 11:29:05 +0000
-
-    Use only a single POE::Component::Resolver by default. Prevents a lot
-    of POE::Component::Client::HTTP useragents from consuming all file
-    descriptors. Reported by Karen_m and BinGOs on Freenode #perl, and
-    fixed with the help of Karen's test case. 
-
 =================================================
-Plus 28 releases after 2011-03-18 00:00:00 +0000.
+Plus 29 releases after 2011-05-16 00:00:00 +0000.
 =================================================

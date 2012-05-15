@@ -22,9 +22,9 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Net::IP::Minimal" => "0.02",
     "POE" => "1.311",
-    "POE::Component::Resolver" => "0.916"
+    "POE::Component::Resolver" => "0.917"
   },
-  "VERSION" => "0.270",
+  "VERSION" => "0.271",
   "test" => {
     "TESTS" => "t/*.t"
   }
