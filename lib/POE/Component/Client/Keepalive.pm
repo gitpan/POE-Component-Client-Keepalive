@@ -1,9 +1,6 @@
 package POE::Component::Client::Keepalive;
-{
-  $POE::Component::Client::Keepalive::VERSION = '0.271';
-}
 # vim: ts=2 sw=2 expandtab
-
+$POE::Component::Client::Keepalive::VERSION = '0.272';
 use warnings;
 use strict;
 
@@ -24,8 +21,11 @@ eval {
 };
 
 use constant DEBUG => 0;
-use constant DEBUG_DNS => DEBUG || 0;
-use constant DEBUG_DEALLOCATE => DEBUG || 0;
+
+use constant {
+  DEBUG_DNS        => (DEBUG || 0),
+  DEBUG_DEALLOCATE => (DEBUG || 0),
+};
 
 use constant TCP_PROTO => scalar(getprotobyname "tcp") || (
   die "getprotobyname('tcp') failed: $!"
@@ -55,42 +55,43 @@ my $instances = 0;
 # them arrays.  These constants define offsets into those arrays, and
 # the comments document them.
 
-                                 # @$self = (
-use constant SF_POOL      => 0;  #   \%socket_pool,
-use constant SF_QUEUE     => 1;  #   \@request_queue,
-use constant SF_USED      => 2;  #   \%sockets_in_use,
-use constant SF_WHEELS    => 3;  #   \%wheels_by_id,
-use constant SF_USED_EACH => 4;  #   \%count_by_triple,
-use constant SF_MAX_OPEN  => 5;  #   $max_open_count,
-use constant SF_MAX_HOST  => 6;  #   $max_per_host,
-use constant SF_SOCKETS   => 7;  #   \%socket_xref,
-use constant SF_KEEPALIVE => 8;  #   $keep_alive_secs,
-use constant SF_TIMEOUT   => 9;  #   $default_request_timeout,
-use constant SF_RESOLVER  => 10; #   $poco_client_dns_object,
-use constant SF_SHUTDOWN  => 11; #   $shutdown_flag,
-use constant SF_REQ_INDEX => 12; #   \%request_id_to_wheel_id,
-use constant SF_BIND_ADDR => 13; #   $bind_address,
-                                 # );
+use constant {         # @$self = (
+  SF_POOL       => 0,  #   \%socket_pool,
+  SF_QUEUE      => 1,  #   \@request_queue,
+  SF_USED       => 2,  #   \%sockets_in_use,
+  SF_WHEELS     => 3,  #   \%wheels_by_id,
+  SF_USED_EACH  => 4,  #   \%count_by_triple,
+  SF_MAX_OPEN   => 5,  #   $max_open_count,
+  SF_MAX_HOST   => 6,  #   $max_per_host,
+  SF_SOCKETS    => 7,  #   \%socket_xref,
+  SF_KEEPALIVE  => 8,  #   $keep_alive_secs,
+  SF_TIMEOUT    => 9,  #   $default_request_timeout,
+  SF_RESOLVER   => 10, #   $poco_client_dns_object,
+  SF_SHUTDOWN   => 11, #   $shutdown_flag,
+  SF_REQ_INDEX  => 12, #   \%request_id_to_wheel_id,
+  SF_BIND_ADDR  => 13, #   $bind_address,
+  SF_ALIAS      => 14, #   $embedded_session_alias
+};                     # );
 
-                                 # $socket_xref{$socket} = [
-use constant SK_KEY       => 0;  #   $conn_key,
-use constant SK_TIMER     => 1;  #   $idle_timer,
-                                 # ];
+use constant {       # $socket_xref{$socket} = [
+  SK_KEY       => 0, #   $conn_key,
+  SK_TIMER     => 1, #   $idle_timer,
+};                   # ];
 
 # $count_by_triple{$conn_key} = $conn_count;
 
-                                 # $wheels_by_id{$wheel_id} = [
-use constant WHEEL_WHEEL   => 0; #   $wheel_object,
-use constant WHEEL_REQUEST => 1; #   $request,
-                                 # ];
+use constant {        # $wheels_by_id{$wheel_id} = [
+  WHEEL_WHEEL   => 0, #   $wheel_object,
+  WHEEL_REQUEST => 1, #   $request,
+};                    # ];
 
 # $socket_pool{$conn_key}{$socket} = $socket;
 
-                                 # $sockets_in_use{$socket} = (
-use constant USED_SOCKET => 0;   #   $socket_handle,
-use constant USED_TIME   => 1;   #   $allocation_time,
-use constant USED_KEY    => 2;   #   $conn_key,
-                                 # );
+use constant {      # $sockets_in_use{$socket} = (
+  USED_SOCKET => 0, #   $socket_handle,
+  USED_TIME   => 1, #   $allocation_time,
+  USED_KEY    => 2, #   $conn_key,
+};                  # );
 
 # @request_queue = (
 #   $request,
@@ -98,27 +99,27 @@ use constant USED_KEY    => 2;   #   $conn_key,
 #   ....
 # );
 
-                                    # $request = [
-use constant RQ_SESSION     => 0;   #   $request_session,
-use constant RQ_EVENT       => 1;   #   $request_event,
-use constant RQ_SCHEME      => 2;   #   $request_scheme,
-use constant RQ_ADDRESS     => 3;   #   $request_address,
-use constant RQ_IP          => 4;   #   $request_ip,
-use constant RQ_PORT        => 5;   #   $request_port,
-use constant RQ_CONN_KEY    => 6;   #   $request_connection_key,
-use constant RQ_CONTEXT     => 7;   #   $request_context,
-use constant RQ_TIMEOUT     => 8;   #   $request_timeout,
-use constant RQ_START       => 9;   #   $request_start_time,
-use constant RQ_TIMER_ID    => 10;  #   $request_timer_id,
-use constant RQ_WHEEL_ID    => 11;  #   $request_wheel_id,
-use constant RQ_ACTIVE      => 12;  #   $request_is_active,
-use constant RQ_ID          => 13;  #   $request_id,
-use constant RQ_ADDR_FAM    => 14;  #   $request_address_family,
-use constant RQ_FOR_SCHEME  => 15;  #   $...
-use constant RQ_FOR_ADDRESS => 16;  #   $...
-use constant RQ_FOR_PORT    => 17;  #   $...
-use constant RQ_RESOLVER_ID => 18;  #   $resolver_request_id,
-                                    # ];
+use constant {          # $request = [
+  RQ_SESSION     => 0,  #   $request_session,
+  RQ_EVENT       => 1,  #   $request_event,
+  RQ_SCHEME      => 2,  #   $request_scheme,
+  RQ_ADDRESS     => 3,  #   $request_address,
+  RQ_IP          => 4,  #   $request_ip,
+  RQ_PORT        => 5,  #   $request_port,
+  RQ_CONN_KEY    => 6,  #   $request_connection_key,
+  RQ_CONTEXT     => 7,  #   $request_context,
+  RQ_TIMEOUT     => 8,  #   $request_timeout,
+  RQ_START       => 9,  #   $request_start_time,
+  RQ_TIMER_ID    => 10, #   $request_timer_id,
+  RQ_WHEEL_ID    => 11, #   $request_wheel_id,
+  RQ_ACTIVE      => 12, #   $request_is_active,
+  RQ_ID          => 13, #   $request_id,
+  RQ_ADDR_FAM    => 14, #   $request_address_family,
+  RQ_FOR_SCHEME  => 15, #   $...
+  RQ_FOR_ADDRESS => 16, #   $...
+  RQ_FOR_PORT    => 17, #   $...
+  RQ_RESOLVER_ID => 18, #   $resolver_request_id,
+};                      # ];
 
 # Create a connection manager.
 
@@ -139,6 +140,8 @@ sub new {
     croak "new() doesn't accept: @unknown";
   }
 
+  my $alias = "POE::Component::Client::Keepalive::" . ++$current_id;
+
   my $self = bless [
     { },                # SF_POOL
     [ ],                # SF_QUEUE
@@ -154,50 +157,54 @@ sub new {
     undef,              # SF_SHUTDOWN
     undef,              # SF_REQ_INDEX
     $bind_address,      # SF_BIND_ADDR
+    undef,              # SF_ALIAS
   ], $class;
 
-  $default_resolver = $resolver
-    if $resolver && eval { $resolver->isa('POE::Component::Resolver') };
+  $default_resolver = $resolver if (
+    $resolver and eval { $resolver->isa('POE::Component::Resolver') }
+  );
 
   $self->[SF_RESOLVER] = (
     $default_resolver ||= POE::Component::Resolver->new()
   );
 
-  POE::Session->create(
+  my $session = POE::Session->create(
     object_states => [
       $self => {
-        _start               => "_ka_initialize",
-        _stop                => "_ka_stopped",
-        ka_add_to_queue      => "_ka_add_to_queue",
+        _start                 => "_ka_initialize",
+        _stop                  => "_ka_stopped",
+        ka_add_to_queue        => "_ka_add_to_queue",
         ka_cancel_dns_response => "_ka_cancel_dns_response",
-        ka_conn_failure      => "_ka_conn_failure",
-        ka_conn_success      => "_ka_conn_success",
-        ka_deallocate        => "_ka_deallocate",
-        ka_dns_response      => "_ka_dns_response",
-        ka_keepalive_timeout => "_ka_keepalive_timeout",
-        ka_reclaim_socket    => "_ka_reclaim_socket",
-        ka_relinquish_socket => "_ka_relinquish_socket",
-        ka_request_timeout   => "_ka_request_timeout",
-        ka_resolve_request   => "_ka_resolve_request",
-        ka_set_timeout       => "_ka_set_timeout",
-        ka_shutdown          => "_ka_shutdown",
-        ka_socket_activity   => "_ka_socket_activity",
-        ka_wake_up           => "_ka_wake_up",
+        ka_conn_failure        => "_ka_conn_failure",
+        ka_conn_success        => "_ka_conn_success",
+        ka_deallocate          => "_ka_deallocate",
+        ka_dns_response        => "_ka_dns_response",
+        ka_keepalive_timeout   => "_ka_keepalive_timeout",
+        ka_reclaim_socket      => "_ka_reclaim_socket",
+        ka_relinquish_socket   => "_ka_relinquish_socket",
+        ka_request_timeout     => "_ka_request_timeout",
+        ka_resolve_request     => "_ka_resolve_request",
+        ka_set_timeout         => "_ka_set_timeout",
+        ka_shutdown            => "_ka_shutdown",
+        ka_socket_activity     => "_ka_socket_activity",
+        ka_wake_up             => "_ka_wake_up",
       },
     ],
   );
+
+  $self->[SF_ALIAS] = ref($self) . "::" . $session->ID();
 
   return $self;
 }
 
 # Initialize the hidden session behind this component.
-# Set an alias so the public methods can send it messages easily.
+# Rendezvous with the object via a mutually agreed upon alias.
 
 sub _ka_initialize {
   my ($object, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
   $instances++;
-  $heap->{resolve} = { };
-  $kernel->alias_set("$object");
+  $heap->{dns_requests} = { };
+  $kernel->alias_set(ref($object) . "::" . $_[SESSION]->ID());
 }
 
 # When programs crash, the session may stop in a non-shutdown state.
@@ -208,8 +215,7 @@ sub _ka_stopped {
 }
 
 sub DESTROY {
-  my $self = shift;
-  $self->shutdown();
+  $_[0]->shutdown();
 }
 
 # Request to wake up.  This should only happen during the edge
@@ -434,8 +440,8 @@ sub allocate {
     "poco-client-keepalive"
   );
 
-  $poe_kernel->call("$self", ka_set_timeout     => $request);
-  $poe_kernel->call("$self", ka_resolve_request => $request);
+  $poe_kernel->call($self->[SF_ALIAS], ka_set_timeout     => $request);
+  $poe_kernel->call($self->[SF_ALIAS], ka_resolve_request => $request);
 
   return $request->[RQ_ID];
 }
@@ -455,7 +461,7 @@ sub deallocate {
   _free_req_id($request->[RQ_ID]);
 
   # Now pass the vetted request & its ID into our manager session.
-  $poe_kernel->call("$self", "ka_deallocate", $request, $req_id);
+  $poe_kernel->call($self->[SF_ALIAS], "ka_deallocate", $request, $req_id);
 }
 
 sub _ka_deallocate {
@@ -479,14 +485,14 @@ sub _ka_deallocate {
     "cancelling connection request"
   );
 
-  unless (exists $heap->{resolve}->{$request->[RQ_ADDRESS]}) {
+  unless (exists $heap->{dns_requests}{$request->[RQ_ADDRESS]}) {
     DEBUG_DEALLOCATE and warn(
       "deallocate cannot cancel dns -- no pending request"
     );
     return;
   }
 
-  $poe_kernel->call( "$self", ka_cancel_dns_response => $request );
+  $poe_kernel->call( $self->[SF_ALIAS], ka_cancel_dns_response => $request );
   return;
 }
 
@@ -496,7 +502,7 @@ sub _ka_cancel_dns_response {
   my $address = $request->[RQ_ADDRESS];
   DEBUG_DNS and warn "DNS: canceling request for $address\n";
 
-  my $requests = $heap->{resolve}{$address};
+  my $requests = $heap->{dns_requests}{$address};
 
   # Remove the resolver request for the address of this connection
   # request
@@ -514,7 +520,7 @@ sub _ka_cancel_dns_response {
   unless (@$requests) {
     DEBUG_DNS and warn "DNS: canceled all requests for $address";
     $self->[SF_RESOLVER]->cancel( $request->[RQ_RESOLVER_ID] );
-    delete $heap->{resolve}{$address};
+    delete $heap->{dns_requests}{$address};
   }
 
   # cancel our attempt to connect
@@ -733,7 +739,7 @@ sub free {
   croak "can't free() unallocated socket" unless defined $used;
 
   # Reclaim the socket.
-  $poe_kernel->call("$self", "ka_reclaim_socket", $used);
+  $poe_kernel->call($self->[SF_ALIAS], "ka_reclaim_socket", $used);
 
   # Avoid returning things by mistake.
   return;
@@ -765,7 +771,7 @@ sub _check_free_pool {
 
   # _check_free_pool() may be operating in another session, so we call
   # the correct one here.
-  $poe_kernel->call("$self", "ka_relinquish_socket", $next_socket);
+  $poe_kernel->call($self->[SF_ALIAS], "ka_relinquish_socket", $next_socket);
 
   $self->[SF_USED]{$next_socket} = [
     $next_socket,  # USED_SOCKET
@@ -877,7 +883,7 @@ sub _ka_keepalive_timeout {
 
 sub _ka_relinquish_socket {
   my ($kernel, $socket) = @_[KERNEL, ARG0];
-  $kernel->alarm_remove($_[OBJECT]->[SF_SOCKETS]{$socket}[SK_TIMER]);
+  $kernel->alarm_remove($_[OBJECT][SF_SOCKETS]{$socket}[SK_TIMER]);
   $kernel->select_read($socket, undef);
 }
 
@@ -887,7 +893,7 @@ sub _ka_relinquish_socket {
 sub shutdown {
   my $self = shift;
   return if $self->[SF_SHUTDOWN];
-  $poe_kernel->call("$self", "ka_shutdown");
+  $poe_kernel->call($self->[SF_ALIAS], "ka_shutdown");
 }
 
 sub _ka_shutdown {
@@ -912,18 +918,22 @@ sub _ka_shutdown {
   }
 
   # Stop any pending resolver requests.
-  foreach my $host (keys %{$heap->{resolve}}) {
+  foreach my $host (keys %{$heap->{dns_requests}}) {
     DEBUG and warn "SHT: Shutting down resolver requests for $host";
 
-    foreach my $request (@{$heap->{resolve}{$host}}) {
+    foreach my $request (@{$heap->{dns_requests}{$host}}) {
       $self->_shutdown_request($kernel, $request);
     }
 
     # Technically not needed since the resolver shutdown should do it.
-    $self->[SF_RESOLVER]->cancel( $heap->{resolve}->[0]->[RQ_RESOLVER_ID] );
+    # They all share the same host, so canceling the first should get
+    # them all.
+    $self->[SF_RESOLVER]->cancel(
+      $heap->{dns_requests}{$host}[0][RQ_RESOLVER_ID]
+    );
   }
 
-  $heap->{resolve} = { };
+  $heap->{dns_requests} = { };
 
   # Shut down the resolver.
   DEBUG and warn "SHT: Shutting down resolver";
@@ -938,7 +948,7 @@ sub _ka_shutdown {
   }
 
   # Finish keepalive's shutdown.
-  $kernel->alias_remove("$self");
+  $kernel->alias_remove($self->[SF_ALIAS]);
   $self->[SF_SHUTDOWN] = 1;
 
   return;
@@ -1003,24 +1013,24 @@ sub _ka_resolve_request {
   # TODO - Would require AF_INET6 support around the SocketFactory.
   if ((($host =~ tr[.][.]) == 3) and ip_is_ipv4($host)) {
     DEBUG_DNS and warn "DNS: $host is a dotted quad; skipping lookup";
-    $kernel->call("$self", ka_add_to_queue => $request);
+    $kernel->call($self->[SF_ALIAS], ka_add_to_queue => $request);
     return;
   }
 
   # It's already pending DNS resolution.  Combine this with previous.
-  if (exists $heap->{resolve}->{$host}) {
+  if (exists $heap->{dns_requests}{$host}) {
     DEBUG_DNS and warn "DNS: $host is piggybacking on a pending lookup.\n";
 
     # All requests for the same host share the same resolver ID.
     # TODO - Although it should probably be keyed on host:port.
-    $request->[RQ_RESOLVER_ID] = $heap->{resolve}->{$host}->[0]->[RQ_RESOLVER_ID];
+    $request->[RQ_RESOLVER_ID] = $heap->{dns_requests}{$host}[0][RQ_RESOLVER_ID];
 
-    push @{$heap->{resolve}->{$host}}, $request;
+    push @{$heap->{dns_requests}{$host}}, $request;
     return;
   }
 
   # New request.  Start lookup.
-  $heap->{resolve}->{$host} = [ $request ];
+  $heap->{dns_requests}{$host} = [ $request ];
 
   $request->[RQ_RESOLVER_ID] = $self->[SF_RESOLVER]->resolve(
     event   => 'ka_dns_response',
@@ -1041,7 +1051,7 @@ sub _ka_dns_response {
   return if $self->[SF_SHUTDOWN];
 
   my $request_address = $request->{host};
-  my $requests = delete $heap->{resolve}->{$request_address};
+  my $requests = delete $heap->{dns_requests}{$request_address};
 
   DEBUG_DNS and warn "DNS: got response for request address $request_address";
 
@@ -1128,7 +1138,7 @@ sub _ka_add_to_queue {
   # Wake the session up, and return nothing, signifying sound and fury
   # yet to come.
   DEBUG and warn "posting wakeup for $conn_key";
-  $poe_kernel->post("$self", "ka_wake_up");
+  $poe_kernel->post($self->[SF_ALIAS], "ka_wake_up");
   return;
 }
 
@@ -1227,7 +1237,7 @@ POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 =head1 VERSION
 
-version 0.271
+version 0.272
 
 =head1 SYNOPSIS
 
@@ -1250,9 +1260,9 @@ version 0.271
   exit;
 
   sub start {
-    $_[HEAP]->{ka} = POE::Component::Client::Keepalive->new();
+    $_[HEAP]{ka} = POE::Component::Client::Keepalive->new();
 
-    $_[HEAP]->{ka}->allocate(
+    $_[HEAP]{ka}->allocate(
       scheme  => "http",
       addr    => "127.0.0.1",
       port    => 9999,

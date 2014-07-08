@@ -17,10 +17,9 @@ use POE::Component::Resolver;
 use Socket qw(AF_INET);
 
 use TestServer;
+my $server_port = TestServer->spawn(0);
 
-# Random port.  Kludge until TestServer can report a port number.
-use constant PORT => int(rand(65535-2000)) + 2000;
-TestServer->spawn(PORT);
+my $test_server_use_count = 0;
 
 POE::Session->create(
   inline_states => {
@@ -51,11 +50,14 @@ sub start_with {
   $heap->{cm}->allocate(
     scheme  => "http",
     addr    => "localhost",
-    port    => PORT,
+    port    => $server_port,
     event   => "got_conn",
     context => "first",
   );
+
+  ++$test_server_use_count;
 }
+
 sub start_without {
   my $heap = $_[HEAP];
 
@@ -67,35 +69,56 @@ sub start_without {
   $heap->{cm}->allocate(
     scheme  => "http",
     addr    => "localhost",
-    port    => PORT,
+    port    => $server_port,
     event   => "got_conn",
     context => "second",
   );
+
+  ++$test_server_use_count;
 }
 
+# TODO - I think this callback is polymorphic (first vs. second)
+# bcause it has common code.  It's probably cleaner to implement two
+# separate callbacks and some helpers to handle their commonalities.
+
 sub got_conn{
-  my ($kernel, $heap, $stuff) = @_[KERNEL, HEAP, ARG0];
+  my ($kernel, $heap, $response) = @_[KERNEL, HEAP, ARG0];
 
   # The delete() ensures only one copy of the connection exists.
-  my $connection = delete $stuff->{connection};
-  my $which = $stuff->{context};
-  ok(defined($connection), "$which request honored asynchronously");
-  ok(not (defined ($stuff->{'from_cache'})), "$which request not from cache");
+  my $connection = delete $response->{connection};
+  my $which = $response->{context};
+
+  if (defined $connection) {
+    pass "$which request honored asynchronously";
+  }
+  else {
+    fail(
+      "$which request $response->{function} error $response->{error_num}: " .
+      $response->{error_str}
+    );
+  }
+
+  ok(
+    (not defined $response->{'from_cache'}),
+    "$which request not from cache"
+  );
 
   if ($which eq 'first') {
     ok(1, "$which request from internal resolver");
   } elsif ($which eq 'second') {
     ok(1, "$which request from external resolver");
-    # need this so we don't get trace output about our session having
-    # already died
-    $connection = undef;
-    # and this so we can terminate without having to go through the
-    # idle polling period
-    $heap->{cm}->shutdown;
-    # and this so we terminate at all
-    delete $heap->{cm};
-    TestServer->shutdown();
   }
+
+  TestServer->shutdown() unless --$test_server_use_count;
+
+  # need this so we don't get trace output about our session having
+  # already died
+  $connection = undef;
+  # and this so we can terminate without having to go through the
+  # idle polling period
+  $heap->{cm}->shutdown;
+  # and this so we terminate at all
+  delete $heap->{cm};
 }
 
 POE::Kernel->run();

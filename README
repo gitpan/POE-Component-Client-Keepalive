@@ -2,7 +2,7 @@ NAME
     POE::Component::Client::Keepalive - manage connections, with keep-alive
 
 VERSION
-    version 0.271
+    version 0.272
 
 SYNOPSIS
       use warnings;
@@ -24,9 +24,9 @@ SYNOPSIS
       exit;
 
       sub start {
-        $_[HEAP]->{ka} = POE::Component::Client::Keepalive->new();
+        $_[HEAP]{ka} = POE::Component::Client::Keepalive->new();
 
-        $_[HEAP]->{ka}->allocate(
+        $_[HEAP]{ka}->allocate(
           scheme  => "http",
           addr    => "127.0.0.1",
           port    => 9999,

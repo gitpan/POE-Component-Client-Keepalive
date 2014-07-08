@@ -18,10 +18,7 @@ use POE::Component::Resolver;
 use Socket qw(AF_INET);
 
 use TestServer;
-
-# Random port.  Kludge until TestServer can report a port number.
-use constant PORT => int(rand(65535-2000)) + 2000;
-TestServer->spawn(PORT);
+my $server_port = TestServer->spawn(0);
 
 POE::Session->create(
   inline_states => {
@@ -42,7 +39,7 @@ sub start {
   $heap->{cm}->allocate(
     scheme  => "http",
     addr    => "localhost",
-    port    => PORT,
+    port    => $server_port,
     event   => "got_conn",
     context => "first",
   );
@@ -54,7 +51,16 @@ sub got_conn{
   # The delete() ensures only one copy of the connection exists.
   my $connection = delete $stuff->{connection};
   my $which = $stuff->{context};
-  ok(defined($connection), "$which request honored asynchronously");
+
+  if (defined $connection) {
+    pass "$which request honored asynchronously";
+  }
+  else {
+    fail(
+      "$which request $stuff->{function} error $stuff->{error_num}: " .
+      $stuff->{error_str}
+    );
+  }
 
   my $is_cached = $stuff->{from_cache};
   # Destroy the connection, freeing its socket.
@@ -65,13 +71,14 @@ sub got_conn{
     $heap->{cm}->allocate(
      scheme  => "http",
      addr    => "localhost",
-     port    => PORT,
+     port    => $server_port,
      event   => "got_conn",
      context => "second",
     );
   } elsif ($which eq 'second') {
     ok(defined $is_cached, "$which request from cache");
     TestServer->shutdown();
+		$heap->{cm}->shutdown();
   }
 
 }

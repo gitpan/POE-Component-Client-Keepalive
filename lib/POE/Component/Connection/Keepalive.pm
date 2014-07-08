@@ -3,10 +3,7 @@
 # when it's destroyed.
 
 package POE::Component::Connection::Keepalive;
-{
-  $POE::Component::Connection::Keepalive::VERSION = '0.271';
-}
-
+$POE::Component::Connection::Keepalive::VERSION = '0.272';
 use warnings;
 use strict;
 
@@ -68,14 +65,16 @@ sub wheel {
 sub close {
   my $self = shift;
 
-  DEBUG and warn "closing $self";
+  DEBUG and warn "closing $self ($self->[CK_WHEEL]) ($self->[CK_SOCKET])";
   if (defined $self->wheel) {
     $self->wheel->shutdown_input();
     $self->wheel->shutdown_output();
     $self->[CK_WHEEL] = undef;
   }
 
-  DEBUG and warn "about to close potentially tied socket/ tied = ", tied(*{$self->[CK_SOCKET]}) ;
+  DEBUG and warn "about to close potentially tied socket/ tied = ", (
+    tied(*{$self->[CK_SOCKET]}) || 'no'
+  );
   close $self->[CK_SOCKET];
 
   my $is_tied = defined tied(*{$self->[CK_SOCKET]});
@@ -88,7 +87,7 @@ sub close {
 
   if (DEBUG) {
     if (defined(fileno($self->[CK_SOCKET]))) {
-      warn "*** BUG: fileno still defined! Is " . fileno($self->[CK_SOCKET]);
+      warn "*** BUG: fileno still defined: " . fileno($self->[CK_SOCKET]);
     }
   }
 }
@@ -103,7 +102,7 @@ POE::Component::Connection::Keepalive - a wheel wrapper around a kept-alive sock
 
 =head1 VERSION
 
-version 0.271
+version 0.272
 
 =head1 SYNOPSIS
 
